@@ -1,24 +1,17 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
-import { createAdminClient } from "@/lib/supabase/admin";
-import { getUserEmailById } from "@/lib/admin";
-import { buildAutoSubmitHtml, buildCheckoutParams } from "@/lib/ecpay";
-import { sendSubscriptionConfirmedEmail } from "@/lib/email";
-import { getSiteUrl } from "@/lib/site";
+import { getNovaOsUpgradeUrl } from "@/lib/novaos-hub";
 import { calculateUpgradeProration } from "@/lib/subscription";
 import {
-  PLAN_CATALOG,
-  getPlanDisplayName,
   isPaidPlan,
   normalizeBillingCycle,
-  normalizePlan,
   type PaidPlanKey,
 } from "@/types/database";
 
 const bodySchema = z.object({
   plan: z.enum(["starter", "pro", "unlimited", "plus", "premium"]),
-  /** quote = only calculate; confirm = create ECPay top-up (default quote for GET) */
+  /** quote = informational only; confirm = redirect to hub ECPay */
   action: z.enum(["quote", "confirm"]).default("quote"),
 });
 
@@ -41,6 +34,7 @@ async function loadProfile(userId: string) {
   return data;
 }
 
+/** Informational proration quote (payment itself is on NovaOS hub). */
 export async function GET(request: Request) {
   try {
     const supabase = createClient();
@@ -51,17 +45,18 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "請先登入" }, { status: 401 });
     }
 
-    const planParam = new URL(request.url).searchParams.get("plan") || "";
-    if (!["starter", "pro", "unlimited", "plus", "premium"].includes(planParam)) {
-      return NextResponse.json({ error: "請指定有效方案" }, { status: 400 });
+    const { searchParams } = new URL(request.url);
+    const planRaw = searchParams.get("plan") || "pro";
+    const toPlan = resolvePaidPlan(planRaw);
+    if (!isPaidPlan(toPlan)) {
+      return NextResponse.json({ error: "無效的付費方案" }, { status: 400 });
     }
 
     const profile = await loadProfile(user.id);
     if (!profile) {
-      return NextResponse.json({ error: "找不到個人資料" }, { status: 404 });
+      return NextResponse.json({ error: "找不到賣家資料" }, { status: 404 });
     }
 
-    const toPlan = resolvePaidPlan(planParam);
     const quote = calculateUpgradeProration({
       fromPlan: profile.plan_type,
       toPlan,
@@ -71,7 +66,11 @@ export async function GET(request: Request) {
       isEarlyBird: profile.is_early_bird,
     });
 
-    return NextResponse.json({ ok: true, quote });
+    return NextResponse.json({
+      quote,
+      checkoutUrl: getNovaOsUpgradeUrl(),
+      hub: true,
+    });
   } catch (error) {
     console.error("[upgrade/GET]", error);
     return NextResponse.json({ error: "無法計算升級差價" }, { status: 500 });
@@ -91,7 +90,10 @@ export async function POST(request: Request) {
     const json = await request.json().catch(() => ({}));
     const parsed = bodySchema.safeParse(json);
     if (!parsed.success) {
-      return NextResponse.json({ error: "請選擇有效方案" }, { status: 400 });
+      return NextResponse.json(
+        { error: "請選擇有效方案" },
+        { status: 400 }
+      );
     }
 
     const toPlan = resolvePaidPlan(parsed.data.plan);
@@ -99,108 +101,35 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "無效的付費方案" }, { status: 400 });
     }
 
-    const profile = await loadProfile(user.id);
-    if (!profile) {
-      return NextResponse.json({ error: "找不到個人資料" }, { status: 404 });
-    }
-
-    const cycle = normalizeBillingCycle(profile.billing_cycle);
-    const quote = calculateUpgradeProration({
-      fromPlan: profile.plan_type,
-      toPlan,
-      cycle,
-      expiresAt: profile.expires_at,
-      discountTier: profile.discount_tier,
-      isEarlyBird: profile.is_early_bird,
-    });
-
     if (parsed.data.action === "quote") {
-      return NextResponse.json({ ok: true, quote });
-    }
-
-    // confirm
-    if (!quote.eligible) {
-      return NextResponse.json(
-        { error: quote.message, code: quote.reason, quote },
-        { status: 400 }
-      );
-    }
-
-    // Zero top-up (edge): apply upgrade immediately without ECPay
-    if (quote.topUpAmount <= 0 && quote.keepExpiresAt) {
-      const admin = createAdminClient();
-      const { error } = await admin
-        .from("profiles")
-        .update({
-          plan_type: toPlan,
-          billing_cycle: cycle,
-          expires_at: quote.keepExpiresAt,
-          trial_ends_at: null,
-        })
-        .eq("id", user.id);
-      if (error) {
-        console.error("[upgrade] free upgrade failed", error);
-        return NextResponse.json({ error: "升級失敗" }, { status: 500 });
+      const profile = await loadProfile(user.id);
+      if (!profile) {
+        return NextResponse.json({ error: "找不到賣家資料" }, { status: 404 });
       }
-
-      try {
-        const email = await getUserEmailById(user.id);
-        if (email) {
-          await sendSubscriptionConfirmedEmail({
-            to: email,
-            shopName: null,
-            planType: toPlan,
-            billingCycle: cycle,
-            expiresAt: quote.keepExpiresAt,
-            mode: "upgrade",
-          });
-        }
-      } catch (notifyError) {
-        console.error("[upgrade] confirm mail failed", notifyError);
-      }
-
+      const quote = calculateUpgradeProration({
+        fromPlan: profile.plan_type,
+        toPlan,
+        cycle: normalizeBillingCycle(profile.billing_cycle),
+        expiresAt: profile.expires_at,
+        discountTier: profile.discount_tier,
+        isEarlyBird: profile.is_early_bird,
+      });
       return NextResponse.json({
-        ok: true,
-        applied: true,
         quote,
-        message: "已套用升級（無需補差價）",
+        checkoutUrl: getNovaOsUpgradeUrl(),
+        hub: true,
       });
     }
 
-    const baseUrl = getSiteUrl();
-    const stamp = Date.now().toString(36).toUpperCase();
-    const uid = user.id.replace(/-/g, "").slice(0, 8).toUpperCase();
-    const merchantTradeNo = `UPG${uid}${stamp}`.slice(0, 20);
-    const fromName = getPlanDisplayName(normalizePlan(profile.plan_type));
-    const toName = PLAN_CATALOG[toPlan].name;
-
-    const { paymentUrl, params } = buildCheckoutParams({
-      merchantTradeNo,
-      totalAmount: quote.topUpAmount,
-      tradeDesc: `PayCheck upgrade ${fromName}->${toName}`,
-      itemName: `NovaStore 升級補差價 ${fromName}→${toName}（餘${quote.remainingDays}天）`,
-      returnURL: `${baseUrl}/api/checkout/callback`,
-      clientBackURL: `${baseUrl}/dashboard/settings?upgraded=proration`,
-      customField1: user.id,
-      // upgrade:<toPlan>:<cycle> — callback keeps expires_at
-      customField2: `upgrade:${toPlan}:${cycle}`,
-    });
-
-    const html = buildAutoSubmitHtml(paymentUrl, params);
-    return new NextResponse(html, {
-      status: 200,
-      headers: {
-        "Content-Type": "text/html; charset=utf-8",
-        "Cache-Control": "no-store",
-        "X-Upgrade-Topup": String(quote.topUpAmount),
-        "X-Upgrade-Remaining-Days": String(quote.remainingDays),
-      },
+    // confirm → 統一主站綠界
+    return NextResponse.json({
+      checkoutUrl: getNovaOsUpgradeUrl(),
+      gateway: "ecpay",
+      hub: true,
+      message: "請至拓新雲端主站完成綠界付款",
     });
   } catch (error) {
     console.error("[upgrade/POST]", error);
-    return NextResponse.json(
-      { error: "無法建立升級付款，請稍後再試" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "無法建立升級導向" }, { status: 500 });
   }
 }

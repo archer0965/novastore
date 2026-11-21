@@ -39,7 +39,10 @@ export function buildExpiryReminderHtml(options: {
   expiresAt: string;
   daysLeft: 1 | 3;
 }): string {
-  const renewUrl = `${getSiteUrl()}/dashboard/settings#upgrade`;
+  const renewUrl = `${
+    process.env.NEXT_PUBLIC_NOVAOS_URL?.replace(/\/$/, "") ||
+    "https://paycheck.com.de"
+  }/login?next=${encodeURIComponent("/dashboard/pass#upgrade")}`;
   const planName = getPlanDisplayName(options.planType);
   const cycleLabel = options.billingCycle
     ? getCycleLabel(options.billingCycle)

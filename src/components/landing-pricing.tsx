@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { getNovaOsUpgradeUrl } from "@/lib/novaos-hub";
 import {
   BILLING_CYCLES,
   LANDING_PLAN_KEYS,
@@ -24,7 +25,8 @@ export function LandingPricing() {
           定價與方案
         </h2>
         <p className="mt-3 max-w-2xl text-muted-foreground">
-          1 款免費＋2 款收費（專業版／旗艦版）。付費升級一律走綠界 ECPay 線上結帳。
+          1 款免費＋2 款收費（專業版／旗艦版）。價目以本站為準；付費升級統一走拓新雲端主站綠界
+          ECPay。
         </p>
 
         <div className="mt-6 inline-flex flex-wrap rounded-xl bg-secondary p-1">
@@ -57,9 +59,7 @@ export function LandingPricing() {
             const price = plan.prices[cycle];
             const period = cycle === "yearly" ? "年" : "月";
             const isFree = key === "free";
-            const ctaHref = isFree
-              ? "/signup"
-              : "/signup?next=/dashboard/settings#upgrade";
+            const ctaHref = isFree ? "/signup" : getNovaOsUpgradeUrl();
 
             return (
               <div
@@ -156,8 +156,13 @@ export function LandingPricing() {
                   )}
                   variant={plan.isPopular ? "default" : "outline"}
                 >
-                  <Link href={ctaHref}>
-                    {isFree ? "免費開始" : "立即訂閱（綠界付款）"}
+                  <Link
+                    href={ctaHref}
+                    {...(isFree
+                      ? {}
+                      : { target: "_blank", rel: "noopener noreferrer" })}
+                  >
+                    {isFree ? "免費開始" : "主站綠界付款升級"}
                   </Link>
                 </Button>
               </div>

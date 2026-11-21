@@ -1,4 +1,4 @@
-import { getSiteUrl } from "@/lib/site";
+import { getNovaOsUpgradeUrl } from "@/lib/novaos-hub";
 import { formatExpiresAtTaipei } from "@/lib/subscription";
 import {
   getCycleLabel,
@@ -12,7 +12,6 @@ export function buildExpiryReminderLineText(options: {
   expiresAt: string;
   daysLeft: 1 | 3;
 }): string {
-  const baseUrl = getSiteUrl();
   const planName = getPlanDisplayName(options.planType);
   return [
     options.daysLeft === 1
@@ -20,7 +19,7 @@ export function buildExpiryReminderLineText(options: {
       : "⏰ 您的 NovaStore 方案將於 3 天後到期",
     `方案：${planName}`,
     `到期日（台北）：${formatExpiresAtTaipei(options.expiresAt)}`,
-    `請續費以避免功能中斷：${baseUrl}/dashboard/settings#upgrade`,
+    `請至拓新雲端主站續費：${getNovaOsUpgradeUrl()}`,
   ].join("\n");
 }
 
@@ -48,6 +47,6 @@ export function describeExpiryReminder(options: {
     planLine: `${planName}（${cycleLabel}）`,
     expiresLine: formatExpiresAtTaipei(options.expiresAt),
     lineText: buildExpiryReminderLineText(options),
-    renewUrl: `${getSiteUrl()}/dashboard/settings#upgrade`,
+    renewUrl: getNovaOsUpgradeUrl(),
   };
 }

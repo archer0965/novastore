@@ -6,6 +6,7 @@
 
 - **正式網址：** https://novastore-omega.vercel.app  
 - **品牌主站（拓新雲端）：** https://paycheck.com.de（獨立 repo `novaos`，互不覆蓋）
+- **訂閱付款路徑：** 統一導向主站綠界 ECPay；**價目**仍以本站 `PRICING_CONFIG` 顯示
 
 在拓新雲端主專案可用 `npm run ecosystem:sync` 把本專案 checkout 到 `ecosystem/sites/novastore` 一次編輯；日常單一修改請直接在本專案進行。
 
@@ -22,7 +23,7 @@
 - Next.js 14 (App Router) + TypeScript + Tailwind
 - Supabase Auth / Postgres / RLS
 - LINE Messaging API
-- ECPay（訂閱升級，可選）
+- 訂閱升級：導向拓新雲端主站綠界 ECPay（`NEXT_PUBLIC_NOVAOS_URL`）
 
 ## 環境變數
 

@@ -45,7 +45,7 @@ export default function TermsPage() {
           3. 訂閱服務與計費
         </h2>
         <p>
-          付費方案透過綠界科技（ECPay）信用卡或其他其支援之付款方式收費，包含：
+          付費方案價目以本站為準；線上付款統一經拓新雲端主站之綠界科技（ECPay）結帳，包含：
         </p>
         <ul className="list-disc space-y-2 pl-5">
           <li>{FREE_TRIAL.description}。</li>
@@ -66,7 +66,8 @@ export default function TermsPage() {
             {PLAN_CATALOG.pro.prices.yearly.total}。
           </li>
           <li>
-            付費方案經綠界 ECPay 結帳，付款成功並回傳確認後即開通對應方案。
+            付費方案於拓新雲端主站經綠界 ECPay
+            結帳，付款成功並回傳確認後即開通對應方案（請使用同一組帳號）。
           </li>
         </ul>
       </section>
