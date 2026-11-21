@@ -29,7 +29,7 @@ export async function getBuyerShopContext(
   const { data: profile, error } = await admin
     .from("profiles")
     .select(
-      "id, shop_name, bank_code, bank_account, plan_type, monthly_usage_count, usage_month, line_user_id, line_channel_access_token, trial_ends_at, expires_at"
+      "id, shop_name, bank_code, bank_account, plan_type, monthly_usage_count, usage_month, line_user_id, line_channel_access_token, trial_ends_at, expires_at, discount_tier, is_early_bird, created_at"
     )
     .eq("id", sellerId)
     .maybeSingle();
@@ -49,6 +49,9 @@ export async function getBuyerShopContext(
   const limit = getPlanLimit(planType, profile.trial_ends_at, {
     isAdmin: isAdminEmail(sellerEmail),
     expiresAt: profile.expires_at,
+    createdAt: profile.created_at,
+    discountTier: profile.discount_tier,
+    isEarlyBird: profile.is_early_bird,
   });
   const quotaFull = limit !== null && usage >= limit;
 

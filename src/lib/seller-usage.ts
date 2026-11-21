@@ -34,7 +34,7 @@ export async function gateSellerMonthlyUsage(
   const { data: seller, error } = await admin
     .from("profiles")
     .select(
-      "id, shop_name, plan_type, monthly_usage_count, usage_month, line_user_id, line_channel_access_token, trial_ends_at, expires_at"
+      "id, shop_name, plan_type, monthly_usage_count, usage_month, line_user_id, line_channel_access_token, trial_ends_at, expires_at, discount_tier, is_early_bird, created_at"
     )
     .eq("id", sellerId)
     .maybeSingle();
@@ -55,6 +55,9 @@ export async function gateSellerMonthlyUsage(
   const limit = getPlanLimit(plan, seller.trial_ends_at, {
     isAdmin: isAdminEmail(sellerEmail),
     expiresAt: seller.expires_at,
+    createdAt: seller.created_at,
+    discountTier: seller.discount_tier,
+    isEarlyBird: seller.is_early_bird,
   });
 
   if (limit !== null && usageCount >= limit) {

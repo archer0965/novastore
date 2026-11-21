@@ -15,9 +15,11 @@ import {
 } from "@/lib/subscription";
 import {
   EARLY_BIRD,
+  SIGNUP_EARLY_BIRD,
   getCycleLabel,
   getPlanDisplayName,
   hasLifetimeSpecialDiscount,
+  hasSignupEarlyBirdDiscount,
   isPaidPlan,
   normalizeBillingCycle,
   normalizePlan,
@@ -50,6 +52,9 @@ export function SubscriptionCard({
     expiresAt: profile.expires_at,
     trialEndsAt: profile.trial_ends_at,
     isAdmin,
+    createdAt: profile.created_at,
+    discountTier: profile.discount_tier,
+    isEarlyBird: profile.is_early_bird,
   });
   const daysLeft =
     status === "trial"
@@ -68,6 +73,10 @@ export function SubscriptionCard({
   const earlyBird = hasLifetimeSpecialDiscount(
     profile.discount_tier,
     profile.is_early_bird
+  );
+  const launchEarlyBird = hasSignupEarlyBirdDiscount(
+    profile.discount_tier,
+    profile.signup_early_bird
   );
 
   const banner =
@@ -101,7 +110,12 @@ export function SubscriptionCard({
             </h2>
             {earlyBird && !isAdmin ? (
               <p className="mt-1 text-sm font-medium text-amber-700">
-                {EARLY_BIRD.label} · 月 8 折／半年 75 折／年 7 折（終身）
+                {EARLY_BIRD.label} · 月 9 折／半年 82 折／年 75 折（終身）
+              </p>
+            ) : null}
+            {launchEarlyBird && !earlyBird && !isAdmin ? (
+              <p className="mt-1 text-sm font-medium text-amber-700">
+                {SIGNUP_EARLY_BIRD.label} · 月 9 折／半年 85 折／年 8 折（終身）
               </p>
             ) : null}
           </div>

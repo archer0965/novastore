@@ -101,10 +101,20 @@ export function getEffectivePlan(
     trialEndsAt?: string | null;
     isAdmin?: boolean;
     now?: Date;
+    createdAt?: string | null;
+    discountTier?: string | null;
+    isEarlyBird?: boolean | null;
   }
 ): PlanType {
   if (options?.isAdmin) return "unlimited";
-  if (isTrialActive(options?.trialEndsAt, options?.now)) {
+  if (
+    isTrialActive(options?.trialEndsAt, {
+      now: options?.now,
+      createdAt: options?.createdAt,
+      discountTier: options?.discountTier,
+      isEarlyBird: options?.isEarlyBird,
+    })
+  ) {
     return normalizePlan(plan) === "free" ? "unlimited" : normalizePlan(plan);
   }
   const p = normalizePlan(plan);
@@ -120,9 +130,21 @@ export function getSubscriptionStatus(options: {
   trialEndsAt?: string | null;
   isAdmin?: boolean;
   now?: Date;
+  createdAt?: string | null;
+  discountTier?: string | null;
+  isEarlyBird?: boolean | null;
 }): SubscriptionStatus {
   if (options.isAdmin) return "admin";
-  if (isTrialActive(options.trialEndsAt, options.now)) return "trial";
+  if (
+    isTrialActive(options.trialEndsAt, {
+      now: options.now,
+      createdAt: options.createdAt,
+      discountTier: options.discountTier,
+      isEarlyBird: options.isEarlyBird,
+    })
+  ) {
+    return "trial";
+  }
 
   const plan = normalizePlan(options.planType);
   if (!isPaidPlan(plan)) return "free";
@@ -149,7 +171,15 @@ export function formatExpiresAtTaipei(iso: string | null | undefined): string {
 }
 
 export function subscriptionFromProfile(
-  profile: Pick<Profile, "plan_type" | "expires_at" | "trial_ends_at">,
+  profile: Pick<
+    Profile,
+    | "plan_type"
+    | "expires_at"
+    | "trial_ends_at"
+    | "created_at"
+    | "discount_tier"
+    | "is_early_bird"
+  >,
   isAdmin = false,
   now: Date = new Date()
 ) {
@@ -159,12 +189,18 @@ export function subscriptionFromProfile(
     trialEndsAt: profile.trial_ends_at,
     isAdmin,
     now,
+    createdAt: profile.created_at,
+    discountTier: profile.discount_tier,
+    isEarlyBird: profile.is_early_bird,
   });
   const effectivePlan = getEffectivePlan(profile.plan_type, {
     expiresAt: profile.expires_at,
     trialEndsAt: profile.trial_ends_at,
     isAdmin,
     now,
+    createdAt: profile.created_at,
+    discountTier: profile.discount_tier,
+    isEarlyBird: profile.is_early_bird,
   });
   return {
     status,

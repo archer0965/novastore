@@ -20,7 +20,7 @@ export function SignupEarlyBirdPromo({
         {SIGNUP_EARLY_BIRD.description}
       </span>
       <span className="tabular-nums text-xs text-accent-foreground/70">
-        已登記 {used}/{max}
+        已占用 {used}/{max}
       </span>
     </div>
   );
@@ -32,7 +32,7 @@ export function SignupEarlyBirdCtaNote({ open }: { open: boolean }) {
     <p className="mt-3 text-sm font-medium text-amber-800">
       {SIGNUP_EARLY_BIRD.description} —{" "}
       <Link href="/signup" className="underline underline-offset-2">
-        立即註冊
+        註冊後至後台開始試用
       </Link>
     </p>
   );

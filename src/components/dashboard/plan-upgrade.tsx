@@ -15,6 +15,7 @@ import {
   getCycleAvgMonthly,
   getCycleLabel,
   getEarlyBirdMultiplier,
+  getSignupEarlyBirdMultiplier,
   getPlanDisplayName,
   hasLifetimeSpecialDiscount,
   isDowngrade,
@@ -34,11 +35,18 @@ const CYCLE_OPTIONS: BillingCycle[] = ["monthly", "half_yearly", "yearly"];
  */
 export function PlanUpgrade({ profile }: { profile: Profile }) {
   const current = normalizePlan(profile.plan_type);
-  const trialOn = isTrialActive(profile.trial_ends_at);
+  const trialOn = isTrialActive(profile.trial_ends_at, {
+    createdAt: profile.created_at,
+    discountTier: profile.discount_tier,
+    isEarlyBird: profile.is_early_bird,
+  });
   const earlyBird = hasLifetimeSpecialDiscount(
     profile.discount_tier,
     profile.is_early_bird
   );
+  const launchEarly =
+    profile.signup_early_bird ||
+    profile.discount_tier === "signup_early_bird";
   const [cycle, setCycle] = useState<BillingCycle>(
     normalizeBillingCycle(profile.billing_cycle)
   );
@@ -109,12 +117,20 @@ export function PlanUpgrade({ profile }: { profile: Profile }) {
           const price = getCheckoutAmount(key, cycle, {
             discountTier: profile.discount_tier,
             isEarlyBird: profile.is_early_bird,
+            signupEarlyBird: profile.signup_early_bird,
           });
           const avg = getCycleAvgMonthly(key, cycle, {
             discountTier: profile.discount_tier,
             isEarlyBird: profile.is_early_bird,
+            signupEarlyBird: profile.signup_early_bird,
           });
-          const fold = formatDiscountFold(getEarlyBirdMultiplier(cycle));
+          const fold = formatDiscountFold(
+            earlyBird
+              ? getEarlyBirdMultiplier(cycle)
+              : launchEarly
+                ? getSignupEarlyBirdMultiplier(cycle)
+                : 1
+          );
           const isCurrent =
             current === key || (current === "unlimited" && key === "pro");
           const downgrade = isDowngrade(current, key) && !isCurrent;

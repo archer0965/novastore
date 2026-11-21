@@ -17,17 +17,32 @@ export function UsageCard({
   monthlyUsageCount,
   trialEndsAt,
   expiresAt,
+  createdAt,
+  discountTier,
+  isEarlyBird,
   isAdmin = false,
 }: {
   planType: PlanType | string;
   monthlyUsageCount: number;
   trialEndsAt?: string | null;
   expiresAt?: string | null;
+  createdAt?: string | null;
+  discountTier?: string | null;
+  isEarlyBird?: boolean | null;
   isAdmin?: boolean;
 }) {
   const plan = normalizePlan(planType);
-  const trialOn = isTrialActive(trialEndsAt) && !isAdmin;
-  const limit = getPlanLimit(plan, trialEndsAt, { isAdmin, expiresAt });
+  const trialOpts = {
+    createdAt,
+    discountTier,
+    isEarlyBird,
+  };
+  const trialOn = isTrialActive(trialEndsAt, trialOpts) && !isAdmin;
+  const limit = getPlanLimit(plan, trialEndsAt, {
+    isAdmin,
+    expiresAt,
+    ...trialOpts,
+  });
   const unlimited = limit === null;
   const nearLimit = !unlimited && monthlyUsageCount >= limit - 3;
   const overLimit = !unlimited && monthlyUsageCount >= limit;

@@ -236,14 +236,27 @@ export const PRICING_CONFIG = {
   freeTrial: {
     enabled: true,
     durationDays: 7,
-    description: "新註冊享有 7 天 NovaStore 全功能免費試用",
+    description:
+      "於後台點「開始免費試用七天」後開通全功能，倒數 7 天（註冊本身不會開始試用）",
+    /** Dashboard CTA label */
+    startButtonLabel: "開始免費試用七天",
   },
-  /** 註冊早鳥：限量前 N 名用戶 14 天試用（與特約店家分開） */
+  /**
+   * 早鳥（本站獨立名額）：後台點開始試用時占用；限量前 N 名。
+   * 終身續約：月繳 9 折／半年繳 85 折／年繳 8 折（與特約店家分開計算）
+   */
   signupEarlyBird: {
     maxUsers: 15,
-    trialDays: 14,
+    trialDays: 7,
     label: "早鳥優惠",
-    description: "限量前 15 名用戶享 14 天免費試用",
+    description:
+      "早鳥限定 15 名：後台開始試用後享 7 天全功能，續約終身月繳 9 折、半年 85 折、整年 8 折",
+    discountTier: "signup_early_bird" as const,
+    cycleMultipliers: {
+      monthly: 0.9,
+      half_yearly: 0.85,
+      yearly: 0.8,
+    } satisfies Record<BillingCycle, number>,
   },
   /** 特約店家（DB／程式仍使用 is_early_bird + lifetime_special） */
   earlyBird: {
@@ -432,23 +445,99 @@ export function isPaidPlan(plan: string | null | undefined): plan is PaidPlanKey
   return p === "starter" || p === "pro" || p === "unlimited";
 }
 
+/**
+ * Profiles created before this instant may keep auto-started DB-trigger trials.
+ * After this gate, trial is only active when activated via the dashboard button
+ * (discount_tier = activated_trial | signup_early_bird | lifetime_special).
+ */
+export const PROMO_TRIAL_GATE_AT_MS = Date.parse("2026-11-22T00:00:00.000Z");
+
+export const TRIAL_ACTIVATED_TIER = "activated_trial" as const;
+
+export type TrialActiveOptions = {
+  now?: Date;
+  createdAt?: string | null;
+  discountTier?: string | null;
+  isEarlyBird?: boolean | null;
+};
+
+function resolveTrialOptions(
+  nowOrOpts?: Date | TrialActiveOptions,
+  maybeOpts?: TrialActiveOptions
+): TrialActiveOptions {
+  if (nowOrOpts instanceof Date || nowOrOpts === undefined) {
+    return {
+      ...(maybeOpts || {}),
+      now: nowOrOpts instanceof Date ? nowOrOpts : maybeOpts?.now,
+    };
+  }
+  return nowOrOpts;
+}
+
+export function isTrialActivationTier(
+  discountTier?: string | null
+): boolean {
+  return (
+    discountTier === TRIAL_ACTIVATED_TIER ||
+    discountTier === SIGNUP_EARLY_BIRD.discountTier ||
+    discountTier === EARLY_BIRD.discountTier
+  );
+}
+
 export function isTrialActive(
   trialEndsAt: string | null | undefined,
-  now: Date = new Date()
+  nowOrOpts?: Date | TrialActiveOptions,
+  maybeOpts?: TrialActiveOptions
 ): boolean {
   if (!FREE_TRIAL.enabled || !trialEndsAt) return false;
+  const opts = resolveTrialOptions(nowOrOpts, maybeOpts);
+  const now = opts.now ?? new Date();
   const ends = new Date(trialEndsAt);
-  return !Number.isNaN(ends.getTime()) && ends.getTime() > now.getTime();
+  if (Number.isNaN(ends.getTime()) || ends.getTime() <= now.getTime()) {
+    return false;
+  }
+
+  // Legacy auto-started trials (before promo gate)
+  if (opts.createdAt) {
+    const createdMs = Date.parse(opts.createdAt);
+    if (
+      !Number.isNaN(createdMs) &&
+      createdMs < PROMO_TRIAL_GATE_AT_MS
+    ) {
+      return true;
+    }
+  } else if (nowOrOpts instanceof Date || nowOrOpts === undefined) {
+    // Call sites that only pass a Date keep date-only behaviour for cron/legacy
+    if (!maybeOpts) return true;
+  }
+
+  return (
+    isTrialActivationTier(opts.discountTier) || Boolean(opts.isEarlyBird)
+  );
 }
 
 /** null = unlimited（含試用期間全功能／管理者） */
 export function getPlanLimit(
   plan: PlanType | string | null | undefined,
   trialEndsAt?: string | null,
-  options?: { isAdmin?: boolean; expiresAt?: string | null }
+  options?: {
+    isAdmin?: boolean;
+    expiresAt?: string | null;
+    createdAt?: string | null;
+    discountTier?: string | null;
+    isEarlyBird?: boolean | null;
+  }
 ): number | null {
   if (options?.isAdmin) return null;
-  if (isTrialActive(trialEndsAt)) return null;
+  if (
+    isTrialActive(trialEndsAt, {
+      createdAt: options?.createdAt,
+      discountTier: options?.discountTier,
+      isEarlyBird: options?.isEarlyBird,
+    })
+  ) {
+    return null;
+  }
   // Expired paid subscription → free quota
   if (
     isPaidPlan(plan) &&
@@ -476,8 +565,20 @@ export function hasLifetimeSpecialDiscount(
   return Boolean(isEarlyBird);
 }
 
+export function hasSignupEarlyBirdDiscount(
+  discountTier?: string | null,
+  signupEarlyBird?: boolean | null
+): boolean {
+  if (discountTier === SIGNUP_EARLY_BIRD.discountTier) return true;
+  return Boolean(signupEarlyBird);
+}
+
 export function getEarlyBirdMultiplier(cycle: BillingCycle): number {
   return EARLY_BIRD.cycleMultipliers[normalizeBillingCycle(cycle)];
+}
+
+export function getSignupEarlyBirdMultiplier(cycle: BillingCycle): number {
+  return SIGNUP_EARLY_BIRD.cycleMultipliers[normalizeBillingCycle(cycle)];
 }
 
 /** Human-readable fold label, e.g. 0.8 →「8 折」、0.75 →「75 折」 */
@@ -493,14 +594,27 @@ export function getCheckoutAmount(
   options?: {
     discountTier?: string | null;
     isEarlyBird?: boolean | null;
+    signupEarlyBird?: boolean | null;
   }
 ): number {
   const normalized = normalizeBillingCycle(cycle);
   const base = PLAN_CATALOG[plan].prices[normalized].total;
+  // Partner VIP takes precedence over launch early-bird
   if (
     hasLifetimeSpecialDiscount(options?.discountTier, options?.isEarlyBird)
   ) {
     return Math.max(1, Math.round(base * getEarlyBirdMultiplier(normalized)));
+  }
+  if (
+    hasSignupEarlyBirdDiscount(
+      options?.discountTier,
+      options?.signupEarlyBird
+    )
+  ) {
+    return Math.max(
+      1,
+      Math.round(base * getSignupEarlyBirdMultiplier(normalized))
+    );
   }
   return base;
 }
@@ -511,6 +625,7 @@ export function getCycleAvgMonthly(
   options?: {
     discountTier?: string | null;
     isEarlyBird?: boolean | null;
+    signupEarlyBird?: boolean | null;
   }
 ): number {
   const normalized = normalizeBillingCycle(cycle);
@@ -519,6 +634,17 @@ export function getCycleAvgMonthly(
     hasLifetimeSpecialDiscount(options?.discountTier, options?.isEarlyBird)
   ) {
     return Math.max(1, Math.round(base * getEarlyBirdMultiplier(normalized)));
+  }
+  if (
+    hasSignupEarlyBirdDiscount(
+      options?.discountTier,
+      options?.signupEarlyBird
+    )
+  ) {
+    return Math.max(
+      1,
+      Math.round(base * getSignupEarlyBirdMultiplier(normalized))
+    );
   }
   return base;
 }

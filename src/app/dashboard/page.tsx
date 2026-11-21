@@ -6,12 +6,14 @@ import { ReportsTable } from "@/components/dashboard/reports-table";
 import { SellerMetricsDashboard } from "@/components/dashboard/seller-metrics";
 import { SetupChecklist } from "@/components/dashboard/setup-checklist";
 import { ShareLink } from "@/components/dashboard/share-link";
+import { StartTrialButton } from "@/components/dashboard/start-trial-button";
 import { SubscriptionCard } from "@/components/dashboard/subscription-card";
 import { UsageCard } from "@/components/dashboard/usage-card";
 import { isAdminEmail } from "@/lib/admin";
 import {
-  trialDaysForNewSignup,
-  trialEndsAtAfterDays,
+  canStartFreeTrial,
+  getSignupEarlyBirdStatus,
+  neutralizeAutoStartedTrial,
 } from "@/lib/signup-early-bird";
 import { getSellerOrderMetrics } from "@/lib/store";
 import { createClient } from "@/lib/supabase/server";
@@ -56,22 +58,25 @@ export default async function DashboardPage() {
       })),
     ]);
 
-  if (!profile) {
-    // Ensure profile row exists for older accounts / race before trigger
-    const days = await trialDaysForNewSignup();
-    const early = days > 7;
+  let resolved = profile as Profile | null;
+
+  if (!resolved) {
+    // Ensure profile row exists; do NOT start trial on create
     await supabase.from("profiles").upsert({
       id: user.id,
       shop_name: "",
-      trial_ends_at: trialEndsAtAfterDays(days),
-      signup_early_bird: early,
+      trial_ends_at: null,
+      signup_early_bird: false,
     });
     redirect("/dashboard/settings");
   }
 
+  const neutralized = await neutralizeAutoStartedTrial(resolved);
+  if (neutralized) resolved = neutralized;
+
   // Never serialize LINE channel secrets into the client RSC payload
   const typedProfile = {
-    ...(profile as Profile),
+    ...resolved,
     line_channel_access_token: null,
     line_channel_secret: null,
   } satisfies Profile;
@@ -81,6 +86,9 @@ export default async function DashboardPage() {
     typedProfile.usage_month === month ? typedProfile.monthly_usage_count : 0;
 
   const shareUrl = getReportShareUrl(user.id);
+  const earlyStatus = await getSignupEarlyBirdStatus();
+  const showStartTrial =
+    !isAdmin && canStartFreeTrial(typedProfile).ok;
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -96,6 +104,13 @@ export default async function DashboardPage() {
         </p>
       </div>
 
+      {showStartTrial ? (
+        <StartTrialButton
+          earlyBirdOpen={earlyStatus.open}
+          earlyBirdRemaining={earlyStatus.remaining}
+        />
+      ) : null}
+
       <SellerMetricsDashboard metrics={metrics} />
 
       <SetupChecklist profile={typedProfile} />
@@ -109,6 +124,9 @@ export default async function DashboardPage() {
         monthlyUsageCount={usage}
         trialEndsAt={typedProfile.trial_ends_at}
         expiresAt={typedProfile.expires_at}
+        createdAt={typedProfile.created_at}
+        discountTier={typedProfile.discount_tier}
+        isEarlyBird={typedProfile.is_early_bird}
         isAdmin={isAdmin}
       />
 
