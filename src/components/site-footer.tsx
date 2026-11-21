@@ -55,6 +55,11 @@ export function SiteFooter() {
               </Link>
             </li>
             <li>
+              <Link href="/legal" className="hover:text-primary">
+                法律資訊
+              </Link>
+            </li>
+            <li>
               <Link href="/track" className="hover:text-primary">
                 買家查單
               </Link>
