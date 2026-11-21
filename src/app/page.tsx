@@ -20,7 +20,7 @@ const jsonLd = {
   operatingSystem: "Web",
   url: PRODUCTION_URL,
   description:
-    "專為台灣代購、團購主打造的一站式獨立賣場與自動對帳平台。3分鐘建立賣場，買家自助下單，系統自動對帳並 LINE 通知。",
+    "NovaStore｜3 分鐘建立 IG 專屬獨立賣場與自動對帳。告別手動對帳與漏單，支援匯款末五碼自動勾稽、運費設定與賣貨便／蝦皮無縫導流。",
   offers: {
     "@type": "Offer",
     price: "0",

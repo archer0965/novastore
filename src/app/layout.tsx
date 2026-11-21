@@ -26,12 +26,11 @@ const Toaster = dynamic(
   { ssr: false }
 );
 
-const siteTitle =
-  "NovaStore ｜ 3分鐘建立 IG 專屬獨立賣場與自動對帳";
+const siteTitle = "NovaStore｜3 分鐘建立 IG 專屬獨立賣場與自動對帳";
 const siteDescription =
-  "專為台灣代購、團購主、微商打造。3分鐘建立獨立賣場，支援多規格、超商取貨與團購進度；買家匯款後自動對帳，LINE 秒收通知。";
+  "告別手動對帳與漏單！支援匯款末五碼自動勾稽、運費設定與賣貨便／蝦皮無縫導流。專為台灣代購、團購與 IG 賣家打造。";
 const twitterDescription =
-  "3分鐘建立 IG 專屬獨立賣場：免私訊收單、免手動對帳，LINE 秒收入帳通知。";
+  "3 分鐘建立 IG 專屬獨立賣場與自動對帳：末五碼勾稽、運費設定、賣貨便／蝦皮導流。";
 
 export const metadata: Metadata = {
   metadataBase: new URL(PRODUCTION_URL),
@@ -69,7 +68,7 @@ export const metadata: Metadata = {
         url: "/og-image.jpg?v=20261122-og",
         width: 2848,
         height: 1504,
-        alt: "NovaStore｜3 分鐘建立 IG 專屬獨立賣場與自動對帳",
+        alt: "NovaStore｜3 分鐘建立 IG 專屬獨立賣場與自動對帳｜末五碼勾稽",
       },
     ],
   },

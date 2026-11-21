@@ -57,7 +57,7 @@ export function LandingHeroBanner({
         </p>
 
         <h1 className="animate-fade-up delay-100 mt-5 max-w-4xl text-balance font-display text-3xl font-bold leading-snug tracking-tight text-white md:text-5xl md:leading-[1.15]">
-          3分鐘建立你的 IG 專屬獨立賣場：免手動對帳、免私訊收單，讓粉絲自己下單結帳！
+          3 分鐘建立 IG 專屬獨立賣場與自動對帳：告別手動對帳與漏單，支援匯款末五碼勾稽、運費設定與賣貨便／蝦皮導流。
         </h1>
 
         <p className="animate-fade-up delay-200 mt-6 max-w-3xl text-pretty text-base leading-relaxed text-sky-100/90 md:mt-8 md:text-lg md:leading-relaxed">
