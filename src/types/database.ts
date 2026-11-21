@@ -251,13 +251,13 @@ export const PRICING_CONFIG = {
     maxSeats: null as number | null,
     trialDays: 14,
     /**
-     * lifetime_special：終身依週期折扣（續約同樣套用）
-     * 月繳 8 折 / 半年繳 75 折 / 年繳 7 折
+     * lifetime_special：對齊 NovaOS hub VIP 特約折扣
+     * 月繳 9 折 / 半年繳 82 折 / 年繳 75 折
      */
     cycleMultipliers: {
-      monthly: 0.8,
-      half_yearly: 0.75,
-      yearly: 0.7,
+      monthly: 0.9,
+      half_yearly: 0.82,
+      yearly: 0.75,
     } satisfies Record<BillingCycle, number>,
     discountTier: "lifetime_special" as const,
     label: "特約店家專屬優惠",
@@ -266,13 +266,13 @@ export const PRICING_CONFIG = {
     pitch:
       "進單、出貨穩定即可申請，私訊官方 LINE 並出示賣場連結，我們審核通過後即享特約店家專屬優惠！",
     description:
-      "審核通過後由管理員開通；贈 14 天全功能試用，之後每次續約終身享月繳 8 折、半年繳 75 折、年繳 7 折。不限名額。",
+      "審核通過後由管理員開通；贈 14 天全功能試用，之後每次續約終身享月繳 9 折、半年繳 82 折、年繳 75 折（與拓新雲端 NovaOS 特約規則一致）。不限名額。",
     termsTitle: "特約店家合作條款",
     terms: [
       "申請人須能證明近 1～3 個月進單、出貨量穩定，並依官方要求提供賣場連結或其他可查核資料供審核。",
       "審核通過成為特約店家後，同意協助推廣 NovaStore 本網站（含但不限於社群、賣場簡介或買家常見路徑之合理曝光）。",
       "日後官方舉辦行銷或合作活動時，特約店家應於合理範圍內配合推廣；若長期未配合或進單／出貨明顯不符特約標準，官方得調整或取消特約資格與專屬優惠。",
-      "特約專屬費率（月繳 8 折、半年繳 75 折、年繳 7 折）為終身續約優惠，僅適用通過審核並維持特約資格之帳號；資格異動以官方通知為準。",
+      "特約專屬費率（月繳 9 折、半年繳 82 折、年繳 75 折）對齊拓新雲端 NovaOS，為終身續約優惠，僅適用通過審核並維持特約資格之帳號；資格異動以官方通知為準。",
       "本條款得依營運需要更新；重大變更將透過官方 LINE 或站內公告告知。繼續使用特約權益即視為同意更新後條款。",
     ],
   },
@@ -332,10 +332,11 @@ export const PRICING_CONFIG = {
         "LINE 每日帳務彙整通知",
         "7-11 賣貨便／蝦皮無縫導流",
       ],
+      // Prices locked to NovaOS hub catalog (owner authority 2026-11-22)
       prices: {
         monthly: { total: 299, avgMonthly: 299 },
-        half_yearly: { total: 1610, avgMonthly: 268 },
-        yearly: { total: 2990, avgMonthly: 249 },
+        half_yearly: { total: 1794, avgMonthly: 299 },
+        yearly: { total: 3588, avgMonthly: 299 },
       },
     },
     pro: {
@@ -350,10 +351,11 @@ export const PRICING_CONFIG = {
         "營收與熱門商品數據分析",
         "專屬優先技術支援",
       ],
+      // Aligned to NovaOS hub unlimited / 旗艦 base prices
       prices: {
         monthly: { total: 499, avgMonthly: 499 },
-        half_yearly: { total: 2690, avgMonthly: 448 },
-        yearly: { total: 4990, avgMonthly: 416 },
+        half_yearly: { total: 2994, avgMonthly: 499 },
+        yearly: { total: 5988, avgMonthly: 499 },
       },
     },
     /** Legacy alias of 旗艦版 — kept for existing subscribers */
@@ -371,8 +373,8 @@ export const PRICING_CONFIG = {
       ],
       prices: {
         monthly: { total: 499, avgMonthly: 499 },
-        half_yearly: { total: 2690, avgMonthly: 448 },
-        yearly: { total: 4990, avgMonthly: 416 },
+        half_yearly: { total: 2994, avgMonthly: 499 },
+        yearly: { total: 5988, avgMonthly: 499 },
       },
     },
   } satisfies Record<PlanType, PlanDefinition>,
