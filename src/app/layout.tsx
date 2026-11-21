@@ -66,10 +66,10 @@ export const metadata: Metadata = {
     description: siteDescription,
     images: [
       {
-        url: "/og-image.jpg",
-        width: 1200,
-        height: 630,
-        alt: "NovaStore Preview Image",
+        url: "/og-image.jpg?v=20261122-og",
+        width: 2848,
+        height: 1504,
+        alt: "NovaStore｜3 分鐘建立 IG 專屬獨立賣場與自動對帳",
       },
     ],
   },
@@ -77,7 +77,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: siteTitle,
     description: twitterDescription,
-    images: ["/og-image.jpg"],
+    images: ["/og-image.jpg?v=20261122-og"],
   },
   appleWebApp: {
     capable: true,
