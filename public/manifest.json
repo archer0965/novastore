@@ -1,0 +1,47 @@
+{
+  "name": "NovaStore",
+  "short_name": "NovaStore",
+  "description": "專為台灣代購、團購主打造的一站式獨立賣場與自動對帳平台",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "id": "/",
+  "orientation": "portrait-primary",
+  "background_color": "#0B132B",
+  "theme_color": "#0B132B",
+  "lang": "zh-Hant",
+  "dir": "ltr",
+  "categories": ["business", "finance", "productivity"],
+  "icons": [
+    {
+      "src": "/pwa-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/pwa-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/pwa-icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/pwa-icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/pwa-apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

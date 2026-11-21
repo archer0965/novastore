@@ -1,0 +1,6 @@
+{
+  "platform": "vercel",
+  "projectName": "novastore",
+  "productionUrl": "https://novastore.vercel.app",
+  "notes": "Independent NovaStore app extracted from paycheck-tw @ 11cf824 (pre-NovaOS multi-module upgrade). Shares Supabase project cucxpmvbcakrfxhlvrbd with NovaOS when desired."
+}
