@@ -2,5 +2,7 @@
   "platform": "vercel",
   "projectName": "novastore",
   "productionUrl": "https://novastore.vercel.app",
-  "notes": "Independent NovaStore app extracted from paycheck-tw @ 11cf824 (pre-NovaOS multi-module upgrade). Shares Supabase project cucxpmvbcakrfxhlvrbd with NovaOS when desired."
+  "notes": "Independent NovaStore app extracted from paycheck-tw @ 11cf824 (pre-NovaOS multi-module upgrade). Shares Supabase project cucxpmvbcakrfxhlvrbd with NovaOS when desired.",
+  "projectId": "prj_NJCFzzDjdwBkYASqMTBudUzOZc2Q",
+  "orgId": "team_URN9eKgTk6M0L0eggsVt1Iw0"
 }
