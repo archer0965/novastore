@@ -250,13 +250,29 @@ export function BuyerOrderForm({ product }: { product: PublicStoreProduct }) {
           })
       );
       if (!res.ok) throw new Error(json.error || "送出失敗");
-      setSubmittedOrderId(json.order?.id || null);
+      const orderId = json.order?.id || null;
+      setSubmittedOrderId(orderId);
       setSubmittedPhone(receiverPhone.trim());
       setDone(true);
       toast.success(
-        json.message || "訂單已送出（將納入賣家每日帳務彙整）"
+        json.message || "訂單已送出，請完成匯款回報"
       );
-      router.refresh();
+      // ATM 結帳後自動引導至匯款回報頁（預填末五碼／金額／訂單編號）
+      const sellerId = product.user_id;
+      if (sellerId) {
+        const qs = new URLSearchParams();
+        if (totalAmount > 0) qs.set("amount", String(totalAmount));
+        if (atmLast5.trim()) qs.set("last5", atmLast5.trim());
+        if (buyerName.trim()) qs.set("name", buyerName.trim());
+        if (orderId) qs.set("order", orderId);
+        if (receiverPhone.trim()) qs.set("phone", receiverPhone.trim());
+        qs.set("from", "checkout");
+        window.setTimeout(() => {
+          window.location.assign(`/p/${encodeURIComponent(sellerId)}?${qs.toString()}`);
+        }, 600);
+      } else {
+        router.refresh();
+      }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "送出失敗");
     } finally {
@@ -272,20 +288,41 @@ export function BuyerOrderForm({ product }: { product: PublicStoreProduct }) {
         <CheckCircle2 className="mx-auto h-8 w-8 text-emerald-600" />
         <h2 className="mt-3 font-display text-lg font-semibold">訂單已送出</h2>
         <p className="mt-2 text-sm text-muted-foreground">
-          賣家會依帳號末碼核對匯款，並依超商門市資訊出貨。請保留轉帳紀錄。
+          正在帶您前往「匯款回報頁」填寫／確認末五碼與金額…
         </p>
         {submittedOrderId ? (
           <p className="mt-3 break-all font-mono text-[11px] text-muted-foreground">
             訂單編號 {submittedOrderId}
           </p>
         ) : null}
-        {trackQ ? (
-          <Button asChild className="mt-4" variant="outline">
-            <Link href={`/track?q=${encodeURIComponent(trackQ)}`}>
-              前往自助查單
-            </Link>
-          </Button>
-        ) : null}
+        <div className="mt-4 flex flex-col items-center gap-2 sm:flex-row sm:justify-center">
+          {product.user_id ? (
+            <Button asChild>
+              <Link
+                href={`/p/${encodeURIComponent(product.user_id)}?${new URLSearchParams(
+                  {
+                    ...(totalAmount > 0
+                      ? { amount: String(totalAmount) }
+                      : {}),
+                    ...(atmLast5.trim() ? { last5: atmLast5.trim() } : {}),
+                    ...(buyerName.trim() ? { name: buyerName.trim() } : {}),
+                    ...(submittedOrderId ? { order: submittedOrderId } : {}),
+                    from: "checkout",
+                  }
+                ).toString()}`}
+              >
+                前往匯款回報
+              </Link>
+            </Button>
+          ) : null}
+          {trackQ ? (
+            <Button asChild variant="outline">
+              <Link href={`/track?q=${encodeURIComponent(trackQ)}`}>
+                自助查單
+              </Link>
+            </Button>
+          ) : null}
+        </div>
       </div>
     );
   }

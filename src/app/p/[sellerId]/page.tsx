@@ -11,11 +11,23 @@ export const metadata = {
 
 export default async function BuyerReportPage({
   params,
+  searchParams,
 }: {
   params: { sellerId: string };
+  searchParams?: Record<string, string | string[] | undefined>;
 }) {
   let loadError: string | null = null;
   let shop = null as Awaited<ReturnType<typeof getBuyerShopContext>>;
+
+  const pick = (key: string) => {
+    const v = searchParams?.[key];
+    return typeof v === "string" ? v : Array.isArray(v) ? v[0] : "";
+  };
+  const amount = pick("amount");
+  const last5 = pick("last5") || pick("bank_last_five");
+  const name = pick("name") || pick("buyer_name");
+  const orderId = pick("order") || pick("order_id");
+  const fromCheckout = pick("from") === "checkout";
 
   try {
     shop = await getBuyerShopContext(params.sellerId);
@@ -24,13 +36,11 @@ export default async function BuyerReportPage({
     }
   } catch (error) {
     console.error("[buyer-page]", error);
-    // Never surface raw 500 to buyers — graceful fallback
     loadError =
       "暫時無法載入店家資料，請稍後再試。若持續發生，請私訊賣家。";
   }
 
   if (shop?.quotaFull && shop.lineUserId) {
-    // Await so the serverless isolate does not freeze before the push finishes
     await sendLineTextMessage(
       shop.lineUserId,
       [
@@ -56,7 +66,31 @@ export default async function BuyerReportPage({
             <p className="mt-2 text-sm text-muted-foreground">{loadError}</p>
           </div>
         ) : (
-          <BuyerReportForm shop={shop.shop} quotaFull={shop.quotaFull} />
+          <>
+            {fromCheckout ? (
+              <div className="mb-4 rounded-2xl border border-emerald-200 bg-emerald-50/90 px-4 py-3 text-sm text-emerald-950">
+                <p className="font-semibold">訂單已建立，請完成匯款回報</p>
+                <p className="mt-1 text-emerald-900/80">
+                  請確認／補填匯款末五碼與金額後送出，賣家即可對帳出貨。
+                </p>
+                {orderId ? (
+                  <p className="mt-2 font-mono text-[11px] text-emerald-800/80">
+                    訂單編號 {orderId}
+                  </p>
+                ) : null}
+              </div>
+            ) : null}
+            <BuyerReportForm
+              shop={shop.shop}
+              quotaFull={shop.quotaFull}
+              initial={{
+                buyer_name: name || undefined,
+                amount: amount || undefined,
+                bank_last_five: last5 || undefined,
+                order_id: orderId || undefined,
+              }}
+            />
+          </>
         )}
       </div>
       <SiteFooter />

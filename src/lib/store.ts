@@ -389,7 +389,15 @@ export type SellerPeriodMetrics = {
 export type SellerOrderMetrics = {
   today: SellerPeriodMetrics;
   week: Pick<SellerPeriodMetrics, "revenue" | "orders">;
-  month: Pick<SellerPeriodMetrics, "revenue" | "orders">;
+  month: Pick<SellerPeriodMetrics, "revenue" | "orders"> & {
+    /** Alias for month.revenue — 本月總 GMV */
+    gmv: number;
+    pendingReconcileAmount: number;
+    pendingReconcileOrders: number;
+    shipCompletionRate: number;
+    fulfilled: number;
+    unfulfilled: number;
+  };
 };
 
 function formatTaipeiYmd(d: Date): string {
@@ -449,7 +457,16 @@ export async function getSellerOrderMetrics(
     return {
       today: emptyPeriod(),
       week: { revenue: 0, orders: 0 },
-      month: { revenue: 0, orders: 0 },
+      month: {
+        revenue: 0,
+        orders: 0,
+        gmv: 0,
+        pendingReconcileAmount: 0,
+        pendingReconcileOrders: 0,
+        shipCompletionRate: 0,
+        fulfilled: 0,
+        unfulfilled: 0,
+      },
     };
   }
 
@@ -469,7 +486,16 @@ export async function getSellerOrderMetrics(
 
   const today = emptyPeriod();
   const week = { revenue: 0, orders: 0 };
-  const month = { revenue: 0, orders: 0 };
+  const month = {
+    revenue: 0,
+    orders: 0,
+    gmv: 0,
+    pendingReconcileAmount: 0,
+    pendingReconcileOrders: 0,
+    shipCompletionRate: 0,
+    fulfilled: 0,
+    unfulfilled: 0,
+  };
 
   for (const row of orders || []) {
     const created = new Date(row.created_at).getTime();
@@ -478,10 +504,18 @@ export async function getSellerOrderMetrics(
     const fulfilled =
       (row.fulfillment_status as string) === "fulfilled" ? 1 : 0;
     const unfulfilled = fulfilled ? 0 : 1;
+    const pendingPay = (row.payment_status as string) !== "matched";
 
     if (created >= monthStartMs) {
       month.revenue += amount;
       month.orders += 1;
+      month.gmv += amount;
+      month.fulfilled += fulfilled;
+      month.unfulfilled += unfulfilled;
+      if (pendingPay) {
+        month.pendingReconcileAmount += amount;
+        month.pendingReconcileOrders += 1;
+      }
     }
     if (created >= weekStart) {
       week.revenue += amount;
@@ -494,6 +528,10 @@ export async function getSellerOrderMetrics(
       today.unfulfilled += unfulfilled;
     }
   }
+
+  const shipTotal = month.fulfilled + month.unfulfilled;
+  month.shipCompletionRate =
+    shipTotal > 0 ? Math.round((month.fulfilled / shipTotal) * 100) : 0;
 
   return { today, week, month };
 }
@@ -587,6 +625,9 @@ export async function listSellerStoreStats(
 export type SellerOrderListItem = StoreOrder & {
   product_title: string;
   product_mode: StoreProduct["mode"] | null;
+  product_cod_url?: string | null;
+  product_cod_label?: string | null;
+  product_enable_cod?: boolean;
 };
 
 /** Flat seller order list for /dashboard/orders fulfillment management. */
@@ -594,13 +635,25 @@ export async function listSellerOrders(
   userId: string
 ): Promise<SellerOrderListItem[]> {
   const admin = createAdminClient();
-  const { data: products, error } = await admin
-    .from("products")
-    .select("id, title, mode")
-    .eq("user_id", userId);
+  const [{ data: products, error }, { data: profile }] = await Promise.all([
+    admin.from("products").select("id, title, mode").eq("user_id", userId),
+    admin
+      .from("profiles")
+      .select("enable_cod, cod_url, cod_label")
+      .eq("id", userId)
+      .maybeSingle(),
+  ]);
 
   if (error) throw error;
   if (!products?.length) return [];
+
+  const sellerCod = {
+    enable_cod: Boolean(profile?.enable_cod) && Boolean(profile?.cod_url),
+    cod_url: (profile?.cod_url as string) || null,
+    cod_label:
+      (typeof profile?.cod_label === "string" && profile.cod_label.trim()) ||
+      "賣貨便／蝦皮",
+  };
 
   const productMap = new Map(
     products.map((p) => [
@@ -642,6 +695,9 @@ export async function listSellerOrders(
         (row as StoreOrder).items_summary || formatOrderItemsSummary(items),
       product_title: product?.title || "商品",
       product_mode: product?.mode || null,
+      product_enable_cod: sellerCod.enable_cod,
+      product_cod_url: sellerCod.cod_url,
+      product_cod_label: sellerCod.cod_label,
     };
   });
 }

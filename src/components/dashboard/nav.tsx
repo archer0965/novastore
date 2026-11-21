@@ -1,10 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
-  LogOut,
   Package,
   Settings,
   Shield,
@@ -12,8 +11,7 @@ import {
   Ticket,
 } from "lucide-react";
 import { BrandLogo } from "@/components/brand-logo";
-import { Button } from "@/components/ui/button";
-import { createClient } from "@/lib/supabase/client";
+import { NovaOsAccountBar } from "@/components/dashboard/novaos-account-bar";
 import { cn } from "@/lib/utils";
 
 function isActivePath(pathname: string, href: string) {
@@ -23,7 +21,6 @@ function isActivePath(pathname: string, href: string) {
 
 export function DashboardNav({ isAdmin = false }: { isAdmin?: boolean }) {
   const pathname = usePathname();
-  const router = useRouter();
 
   const links = [
     { href: "/dashboard", label: "儀表板", icon: LayoutDashboard },
@@ -35,13 +32,6 @@ export function DashboardNav({ isAdmin = false }: { isAdmin?: boolean }) {
       ? [{ href: "/dashboard/admin", label: "管理", icon: Shield }]
       : []),
   ];
-
-  async function signOut() {
-    const supabase = createClient();
-    await supabase.auth.signOut();
-    router.push("/");
-    router.refresh();
-  }
 
   return (
     <>
@@ -68,25 +58,11 @@ export function DashboardNav({ isAdmin = false }: { isAdmin?: boolean }) {
                 </Link>
               );
             })}
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={signOut}
-              className="text-muted-foreground"
-            >
-              <LogOut className="h-4 w-4" />
-              登出
-            </Button>
+            <NovaOsAccountBar />
           </nav>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={signOut}
-            className="text-muted-foreground sm:hidden"
-            aria-label="登出"
-          >
-            <LogOut className="h-4 w-4" />
-          </Button>
+          <div className="flex items-center gap-1 sm:hidden">
+            <NovaOsAccountBar />
+          </div>
         </div>
       </header>
 

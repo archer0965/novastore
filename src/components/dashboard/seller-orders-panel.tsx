@@ -15,6 +15,33 @@ import { STORE_TYPE_LABELS, type ConvenienceStoreType } from "@/types/database";
 
 type FulfillmentFilter = "all" | "unfulfilled" | "fulfilled";
 type PaymentFilter = "all" | "pending" | "matched";
+type LifecycleFilter =
+  | "all"
+  | "pending_remit"
+  | "reconciled"
+  | "awaiting_ship"
+  | "shipped";
+
+const NOTES_KEY = "novastore-order-notes-v1";
+
+function loadNotes(): Record<string, string> {
+  if (typeof window === "undefined") return {};
+  try {
+    return JSON.parse(localStorage.getItem(NOTES_KEY) || "{}") as Record<
+      string,
+      string
+    >;
+  } catch {
+    return {};
+  }
+}
+
+function saveNote(orderId: string, note: string) {
+  const all = loadNotes();
+  if (note.trim()) all[orderId] = note.trim();
+  else delete all[orderId];
+  localStorage.setItem(NOTES_KEY, JSON.stringify(all));
+}
 
 export function SellerOrdersPanel({
   orders,
@@ -26,12 +53,18 @@ export function SellerOrdersPanel({
   const [fulfillmentFilter, setFulfillmentFilter] =
     useState<FulfillmentFilter>("all");
   const [paymentFilter, setPaymentFilter] = useState<PaymentFilter>("all");
+  const [lifecycle, setLifecycle] = useState<LifecycleFilter>("all");
+  const [notes, setNotes] = useState<Record<string, string>>({});
   const [localPayment, setLocalPayment] = useState<
     Record<string, "pending" | "matched">
   >({});
   const [localFulfillment, setLocalFulfillment] = useState<
     Record<string, "unfulfilled" | "fulfilled">
   >({});
+
+  useEffect(() => {
+    setNotes(loadNotes());
+  }, []);
 
   // Drop optimistic overrides once refreshed props match
   useEffect(() => {
@@ -98,15 +131,46 @@ export function SellerOrdersPanel({
       if (fulfillmentFilter !== "all" && fulfillment !== fulfillmentFilter) {
         return false;
       }
+      if (lifecycle === "pending_remit" && payment !== "pending") return false;
+      if (lifecycle === "reconciled" && payment !== "matched") return false;
+      if (
+        lifecycle === "awaiting_ship" &&
+        !(payment === "matched" && fulfillment === "unfulfilled")
+      ) {
+        return false;
+      }
+      if (lifecycle === "shipped" && fulfillment !== "fulfilled") return false;
       return true;
     });
   }, [
     orders,
     paymentFilter,
     fulfillmentFilter,
+    lifecycle,
     localPayment,
     localFulfillment,
   ]);
+
+  const lifecycleCounts = useMemo(() => {
+    let pending_remit = 0;
+    let reconciled = 0;
+    let awaiting_ship = 0;
+    let shipped = 0;
+    for (const order of orders) {
+      const payment = localPayment[order.id] || order.payment_status;
+      const fulfillment =
+        localFulfillment[order.id] ||
+        order.fulfillment_status ||
+        "unfulfilled";
+      if (payment === "pending") pending_remit += 1;
+      if (payment === "matched") reconciled += 1;
+      if (payment === "matched" && fulfillment === "unfulfilled") {
+        awaiting_ship += 1;
+      }
+      if (fulfillment === "fulfilled") shipped += 1;
+    }
+    return { pending_remit, reconciled, awaiting_ship, shipped };
+  }, [orders, localPayment, localFulfillment]);
 
   async function patchOrder(
     orderId: string,
@@ -183,6 +247,49 @@ export function SellerOrdersPanel({
     <div className="space-y-4">
       <div className="space-y-3 rounded-2xl border border-sky-500/15 bg-gradient-to-br from-sky-50/80 via-background to-slate-50/60 p-3 sm:p-4">
         <FilterRow
+          label="訂單狀態"
+          value={lifecycle}
+          onChange={(v) => {
+            setLifecycle(v);
+            // Sync dual filters for clarity
+            if (v === "pending_remit") {
+              setPaymentFilter("pending");
+              setFulfillmentFilter("all");
+            } else if (v === "reconciled") {
+              setPaymentFilter("matched");
+              setFulfillmentFilter("all");
+            } else if (v === "awaiting_ship") {
+              setPaymentFilter("matched");
+              setFulfillmentFilter("unfulfilled");
+            } else if (v === "shipped") {
+              setPaymentFilter("all");
+              setFulfillmentFilter("fulfilled");
+            } else {
+              setPaymentFilter("all");
+              setFulfillmentFilter("all");
+            }
+          }}
+          options={[
+            { id: "all", label: `全部 (${counts.all})` },
+            {
+              id: "pending_remit",
+              label: `待對帳 (${lifecycleCounts.pending_remit})`,
+            },
+            {
+              id: "reconciled",
+              label: `已對帳 (${lifecycleCounts.reconciled})`,
+            },
+            {
+              id: "awaiting_ship",
+              label: `待出貨 (${lifecycleCounts.awaiting_ship})`,
+            },
+            {
+              id: "shipped",
+              label: `已出貨 (${lifecycleCounts.shipped})`,
+            },
+          ]}
+        />
+        <FilterRow
           label="出貨篩選"
           value={fulfillmentFilter}
           onChange={setFulfillmentFilter}
@@ -203,7 +310,7 @@ export function SellerOrdersPanel({
           ]}
         />
         <p className="text-[11px] text-muted-foreground">
-          可組合篩選，例如「未出貨 × 已對帳」方便一次包貨出貨。
+          狀態分類：待對帳 → 已對帳 → 待出貨 → 已出貨；可再細調出貨／對帳篩選。
         </p>
       </div>
 
@@ -246,6 +353,11 @@ export function SellerOrdersPanel({
                   payment={payment}
                   fulfillment={fulfillment}
                   busy={busyId === order.id}
+                  note={notes[order.id] || ""}
+                  onNoteChange={(value) => {
+                    saveNote(order.id, value);
+                    setNotes((prev) => ({ ...prev, [order.id]: value }));
+                  }}
                   onPatch={patchOrder}
                 />
               );
@@ -405,7 +517,35 @@ export function SellerOrdersPanel({
                               ? "標記已出貨"
                               : "標記未出貨"}
                           </Button>
+                          {order.product_enable_cod && order.product_cod_url ? (
+                            <Button asChild size="sm" variant="outline">
+                              <a
+                                href={order.product_cod_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                              >
+                                {order.product_cod_label || "賣貨便／蝦皮"}
+                              </a>
+                            </Button>
+                          ) : null}
                         </div>
+                        <p className="mt-1 font-mono text-[10px] text-muted-foreground">
+                          訂單 {order.id.slice(0, 8)}…
+                        </p>
+                        <textarea
+                          className="mt-1 w-full min-w-[160px] rounded-lg border border-border bg-background px-2 py-1 text-[11px]"
+                          rows={2}
+                          placeholder="賣家備註…"
+                          value={notes[order.id] || ""}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            saveNote(order.id, value);
+                            setNotes((prev) => ({
+                              ...prev,
+                              [order.id]: value,
+                            }));
+                          }}
+                        />
                       </td>
                     </tr>
                   );
@@ -461,12 +601,16 @@ function OrderCard({
   payment,
   fulfillment,
   busy,
+  note,
+  onNoteChange,
   onPatch,
 }: {
   order: SellerOrderListItem;
   payment: "pending" | "matched";
   fulfillment: "unfulfilled" | "fulfilled";
   busy: boolean;
+  note: string;
+  onNoteChange: (value: string) => void;
   onPatch: (
     orderId: string,
     body: {
@@ -487,6 +631,12 @@ function OrderCard({
           <p className="font-display font-semibold">{order.product_title}</p>
           <p className="text-[11px] text-muted-foreground">
             {order.buyer_name} · {formatDateTime(order.created_at)}
+          </p>
+          <p className="mt-0.5 font-mono text-[10px] text-muted-foreground">
+            訂單 {order.id.slice(0, 8)}… · 末五碼{" "}
+            <span className="font-semibold text-foreground">
+              {order.atm_last5 || "—"}
+            </span>
           </p>
         </div>
         <OrderAmountBreakdown
@@ -592,6 +742,24 @@ function OrderCard({
           {fulfillment === "unfulfilled" ? "標記已出貨" : "標記未出貨"}
         </Button>
       </div>
+      {order.product_enable_cod && order.product_cod_url ? (
+        <Button asChild size="sm" variant="outline" className="mt-2 w-full">
+          <a
+            href={order.product_cod_url}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {order.product_cod_label || "開啟賣貨便／蝦皮導流"}
+          </a>
+        </Button>
+      ) : null}
+      <textarea
+        className="mt-2 w-full rounded-xl border border-border bg-background px-3 py-2 text-xs"
+        rows={2}
+        placeholder="賣家備註（本機儲存）…"
+        value={note}
+        onChange={(e) => onNoteChange(e.target.value)}
+      />
     </article>
   );
 }

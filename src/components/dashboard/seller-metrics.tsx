@@ -87,6 +87,35 @@ export function SellerMetricsDashboard({
           />
         </div>
 
+        <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <PeriodStrip
+            title="本月總 GMV"
+            revenue={month.gmv ?? month.revenue}
+            orders={month.orders}
+            hint="已成立訂單金額加總"
+          />
+          <PeriodStrip
+            title="待對帳金額"
+            revenue={month.pendingReconcileAmount || 0}
+            orders={month.pendingReconcileOrders || 0}
+            hint="payment 尚未 matched"
+          />
+          <div className="flex items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/5 px-4 py-3">
+            <div>
+              <p className="text-xs font-medium text-sky-100/70">出貨完成率</p>
+              <p className="mt-0.5 font-display text-lg font-semibold tabular-nums text-white">
+                {month.shipCompletionRate ?? 0}%
+              </p>
+            </div>
+            <div className="text-right">
+              <p className="text-[11px] text-sky-100/55">本月已出／未出</p>
+              <p className="font-display text-xl font-semibold tabular-nums text-sky-100">
+                {month.fulfilled ?? 0}/{month.unfulfilled ?? 0}
+              </p>
+            </div>
+          </div>
+        </div>
+
         <div className="mt-3 grid gap-3 sm:grid-cols-2">
           <PeriodStrip
             title="本週"
@@ -94,7 +123,7 @@ export function SellerMetricsDashboard({
             orders={week.orders}
           />
           <PeriodStrip
-            title="本月"
+            title="本月營收"
             revenue={month.revenue}
             orders={month.orders}
           />
@@ -142,10 +171,12 @@ function PeriodStrip({
   title,
   revenue,
   orders,
+  hint = "總訂單量",
 }: {
   title: string;
   revenue: number;
   orders: number;
+  hint?: string;
 }) {
   return (
     <div className="flex items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/5 px-4 py-3">
@@ -156,7 +187,7 @@ function PeriodStrip({
         </p>
       </div>
       <div className="text-right">
-        <p className="text-[11px] text-sky-100/55">總訂單量</p>
+        <p className="text-[11px] text-sky-100/55">{hint}</p>
         <p className="font-display text-xl font-semibold tabular-nums text-sky-100">
           {orders}
         </p>

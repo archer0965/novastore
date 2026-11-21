@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { AutoReconcilePanel } from "@/components/dashboard/auto-reconcile";
 import { MarketingTemplates } from "@/components/dashboard/marketing-templates";
+import { PendingReconcileDesk } from "@/components/dashboard/pending-reconcile-desk";
 import { ProductionUrlsCard } from "@/components/dashboard/production-urls-card";
 import { ReportsTable } from "@/components/dashboard/reports-table";
 import { SellerMetricsDashboard } from "@/components/dashboard/seller-metrics";
@@ -15,7 +16,7 @@ import {
   getSignupEarlyBirdStatus,
   neutralizeAutoStartedTrial,
 } from "@/lib/signup-early-bird";
-import { getSellerOrderMetrics } from "@/lib/store";
+import { getSellerOrderMetrics, listSellerOrders } from "@/lib/store";
 import { createClient } from "@/lib/supabase/server";
 import { currentUsageMonth, getReportShareUrl } from "@/lib/utils-format";
 import type { PaymentReport, Profile } from "@/types/database";
@@ -32,8 +33,12 @@ export default async function DashboardPage() {
 
   if (!user) redirect("/login");
 
-  const [{ data: profile }, { data: reports, count: reportsCount }, metrics] =
-    await Promise.all([
+  const [
+    { data: profile },
+    { data: reports, count: reportsCount },
+    metrics,
+    sellerOrders,
+  ] = await Promise.all([
       supabase
         .from("profiles")
         .select(
@@ -54,8 +59,18 @@ export default async function DashboardPage() {
       getSellerOrderMetrics(user.id).catch(() => ({
         today: { revenue: 0, orders: 0, fulfilled: 0, unfulfilled: 0 },
         week: { revenue: 0, orders: 0 },
-        month: { revenue: 0, orders: 0 },
+        month: {
+          revenue: 0,
+          orders: 0,
+          gmv: 0,
+          pendingReconcileAmount: 0,
+          pendingReconcileOrders: 0,
+          shipCompletionRate: 0,
+          fulfilled: 0,
+          unfulfilled: 0,
+        },
       })),
+      listSellerOrders(user.id).catch(() => []),
     ]);
 
   let resolved = profile as Profile | null;
@@ -112,6 +127,8 @@ export default async function DashboardPage() {
       ) : null}
 
       <SellerMetricsDashboard metrics={metrics} />
+
+      <PendingReconcileDesk orders={sellerOrders} />
 
       <SetupChecklist profile={typedProfile} />
 

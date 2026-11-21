@@ -25,9 +25,18 @@ import { cn } from "@/lib/utils";
 export function BuyerReportForm({
   shop,
   quotaFull = false,
+  initial,
 }: {
   shop: ShopPublic;
   quotaFull?: boolean;
+  /** Prefill from checkout handoff (?amount&last5&name&order) */
+  initial?: {
+    buyer_name?: string;
+    amount?: string;
+    bank_last_five?: string;
+    note?: string;
+    order_id?: string;
+  };
 }) {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -35,14 +44,16 @@ export function BuyerReportForm({
   const inFlight = useRef(false);
   const successRef = useRef<HTMLDivElement>(null);
   const [form, setForm] = useState({
-    buyer_name: "",
+    buyer_name: initial?.buyer_name || "",
     contact_platform: "ig" as ContactPlatform,
     buyer_contact: "",
     transfer_bank: "",
     transfer_bank_other: "",
-    amount: "",
-    bank_last_five: "",
-    note: "",
+    amount: initial?.amount || "",
+    bank_last_five: initial?.bank_last_five || "",
+    note:
+      initial?.note ||
+      (initial?.order_id ? `訂單編號 ${initial.order_id}` : ""),
   });
 
   const lastFiveReady = form.bank_last_five.length === 5;
