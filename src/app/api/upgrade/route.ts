@@ -24,7 +24,7 @@ const bodySchema = z.object({
 
 function resolvePaidPlan(raw: string): PaidPlanKey {
   if (raw === "plus") return "starter";
-  if (raw === "premium") return "unlimited";
+  if (raw === "premium" || raw === "unlimited") return "pro";
   return raw as PaidPlanKey;
 }
 

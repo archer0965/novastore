@@ -44,8 +44,8 @@ export async function POST(request: Request) {
     const plan: PaidPlanKey =
       planRaw === "plus"
         ? "starter"
-        : planRaw === "premium"
-          ? "unlimited"
+        : planRaw === "premium" || planRaw === "unlimited"
+          ? "pro"
           : (planRaw as PaidPlanKey);
 
     if (!isPaidPlan(plan)) {
@@ -85,7 +85,7 @@ export async function POST(request: Request) {
         earlyBird ? "·特約店家" : ""
       }）`,
       returnURL: `${baseUrl}/api/checkout/callback`,
-      clientBackURL: `${baseUrl}/dashboard/settings?upgraded=pending`,
+      clientBackURL: `${baseUrl}/dashboard/settings?upgraded=1`,
       customField1: user.id,
       customField2: `${plan}:${cycle}`,
     });

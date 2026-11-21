@@ -64,7 +64,7 @@ export function SubscriptionCard({
 
   const showRenew =
     !isAdmin && (isPaidPlan(plan) || status === "expired");
-  const showUpgrade = !isAdmin && plan !== "unlimited";
+  const showUpgrade = !isAdmin && plan !== "pro" && plan !== "unlimited";
   const earlyBird = hasLifetimeSpecialDiscount(
     profile.discount_tier,
     profile.is_early_bird

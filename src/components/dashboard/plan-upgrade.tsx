@@ -8,7 +8,7 @@ import {
   BILLING_CYCLES,
   EARLY_BIRD,
   FREE_TRIAL,
-  PAID_PLAN_KEYS,
+  PRIMARY_PAID_PLAN_KEYS,
   PLAN_CATALOG,
   PLAN_RANK,
   formatDiscountFold,
@@ -210,8 +210,8 @@ export function PlanUpgrade({ profile }: { profile: Profile }) {
         </div>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-3">
-        {PAID_PLAN_KEYS.map((key) => {
+      <div className="grid gap-4 lg:grid-cols-2">
+        {PRIMARY_PAID_PLAN_KEYS.map((key) => {
           const plan = PLAN_CATALOG[key];
           const listPrice = getCheckoutAmount(key, cycle);
           const price = getCheckoutAmount(key, cycle, {
@@ -223,8 +223,9 @@ export function PlanUpgrade({ profile }: { profile: Profile }) {
             isEarlyBird: profile.is_early_bird,
           });
           const fold = formatDiscountFold(getEarlyBirdMultiplier(cycle));
-          const isCurrent = current === key;
-          const downgrade = isDowngrade(current, key);
+          const isCurrent =
+            current === key || (current === "unlimited" && key === "pro");
+          const downgrade = isDowngrade(current, key) && !isCurrent;
           const prorate = canProrateUpgrade(profile, key);
 
           return (
@@ -329,12 +330,12 @@ export function PlanUpgrade({ profile }: { profile: Profile }) {
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : null}
                 {isCurrent
-                  ? "立即續費（天數累加）"
+                  ? "綠界續費（天數累加）"
                   : downgrade
                     ? "已是更高方案"
                     : prorate
-                      ? `補差價升級 ${plan.name}`
-                      : `升級 ${plan.name}`}
+                      ? `綠界補差價升級 ${plan.name}`
+                      : `立即訂閱／升級 ${plan.name}`}
               </Button>
             </div>
           );

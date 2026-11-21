@@ -87,6 +87,7 @@ export function UsageCard({
         </div>
         {!isAdmin &&
           (nearLimit || overLimit || plan === "free" || trialOn) &&
+          plan !== "pro" &&
           plan !== "unlimited" && (
             <Button
               asChild

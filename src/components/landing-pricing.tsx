@@ -6,20 +6,13 @@ import { Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   BILLING_CYCLES,
-  PAID_PLAN_KEYS,
+  LANDING_PLAN_KEYS,
   PLAN_CATALOG,
   type BillingCycle,
-  type PaidPlanKey,
 } from "@/types/database";
 import { cn } from "@/lib/utils";
 
-const CYCLE_OPTIONS: BillingCycle[] = ["monthly", "half_yearly", "yearly"];
-
-const PLAN_BLURB: Record<PaidPlanKey, string> = {
-  starter: "適用：剛起步、少量多樣的小賣場",
-  pro: "適用：穩定出單、頻繁開團的專職賣場",
-  unlimited: "適用：熱門團媽、直播主與中大型團隊",
-};
+const CYCLE_OPTIONS: BillingCycle[] = ["monthly", "yearly"];
 
 export function LandingPricing() {
   const [cycle, setCycle] = useState<BillingCycle>("monthly");
@@ -28,10 +21,10 @@ export function LandingPricing() {
     <section id="pricing" className="relative z-10 scroll-mt-20 py-16 md:py-20">
       <div className="mx-auto max-w-6xl px-4">
         <h2 className="font-display text-2xl font-semibold tracking-tight md:text-3xl">
-          價格方案
+          定價與方案
         </h2>
         <p className="mt-3 max-w-2xl text-muted-foreground">
-          以每月處理訂單筆數分級；所有方案皆享自動對帳與 LINE 通知。預設月繳，也可選半年繳／年繳更省。
+          1 款免費＋2 款收費（專業版／旗艦版）。付費升級一律走綠界 ECPay 線上結帳。
         </p>
 
         <div className="mt-6 inline-flex flex-wrap rounded-xl bg-secondary p-1">
@@ -49,22 +42,24 @@ export function LandingPricing() {
                     : "text-muted-foreground hover:text-foreground"
                 )}
               >
-                {meta.label}
+                {value === "yearly" ? "年繳" : meta.label}
+                {value === "yearly" ? (
+                  <span className="ml-1 opacity-80">（更省）</span>
+                ) : null}
               </button>
             );
           })}
         </div>
 
         <div className="mt-10 grid gap-6 md:grid-cols-3">
-          {PAID_PLAN_KEYS.map((key) => {
+          {LANDING_PLAN_KEYS.map((key) => {
             const plan = PLAN_CATALOG[key];
             const price = plan.prices[cycle];
-            const period =
-              cycle === "yearly"
-                ? "年"
-                : cycle === "half_yearly"
-                  ? "半年"
-                  : "月";
+            const period = cycle === "yearly" ? "年" : "月";
+            const isFree = key === "free";
+            const ctaHref = isFree
+              ? "/signup"
+              : "/signup?next=/dashboard/settings#upgrade";
 
             return (
               <div
@@ -78,7 +73,7 @@ export function LandingPricing() {
               >
                 {plan.isPopular ? (
                   <p className="absolute right-4 top-4 text-xs font-semibold text-accent">
-                    {plan.popularBadge || "最受歡迎"}
+                    {plan.popularBadge || "主推方案"}
                   </p>
                 ) : null}
                 <p
@@ -92,18 +87,24 @@ export function LandingPricing() {
                   {plan.name}
                 </p>
                 <p className="mt-3 font-display text-4xl font-bold tracking-tight">
-                  NT${price.total.toLocaleString("zh-TW")}
-                  <span
-                    className={cn(
-                      "text-base font-medium",
-                      plan.isPopular
-                        ? "text-primary-foreground/75"
-                        : "text-muted-foreground"
-                    )}
-                  >
-                    {" "}
-                    / {period}
-                  </span>
+                  {isFree ? (
+                    "免費"
+                  ) : (
+                    <>
+                      NT${price.total.toLocaleString("zh-TW")}
+                      <span
+                        className={cn(
+                          "text-base font-medium",
+                          plan.isPopular
+                            ? "text-primary-foreground/75"
+                            : "text-muted-foreground"
+                        )}
+                      >
+                        {" "}
+                        / {period}
+                      </span>
+                    </>
+                  )}
                 </p>
                 <p
                   className={cn(
@@ -113,9 +114,9 @@ export function LandingPricing() {
                       : "text-muted-foreground"
                   )}
                 >
-                  {PLAN_BLURB[key]}
+                  {plan.blurb}
                 </p>
-                {cycle !== "monthly" ? (
+                {!isFree && cycle === "yearly" ? (
                   <p
                     className={cn(
                       "mt-1 text-xs",
@@ -155,7 +156,9 @@ export function LandingPricing() {
                   )}
                   variant={plan.isPopular ? "default" : "outline"}
                 >
-                  <Link href="/signup">選擇方案</Link>
+                  <Link href={ctaHref}>
+                    {isFree ? "免費開始" : "立即訂閱（綠界付款）"}
+                  </Link>
                 </Button>
               </div>
             );

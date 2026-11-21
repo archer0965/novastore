@@ -302,15 +302,15 @@ export const PRICING_CONFIG = {
   plans: {
     free: {
       id: "free",
-      name: "免費體驗版",
-      monthlyQuota: 5,
+      name: "免費版",
+      monthlyQuota: 15,
       isPopular: false,
-      blurb: "先體驗 NovaStore 賣場與自動對帳",
+      blurb: "適合體驗",
       features: [
-        "每月最高 5 筆訂單",
-        "NovaStore 專屬個人賣場",
-        "代購／團購雙模式",
-        "LINE 自動對帳通知",
+        "每月 15 筆站內 ATM 自動對帳額度",
+        "買家填寫匯款末五碼自動勾稽",
+        "7-11 賣貨便／蝦皮外部導流",
+        "基礎訂單管理後台",
       ],
       prices: {
         monthly: { total: 0, avgMonthly: 0 },
@@ -320,36 +320,17 @@ export const PRICING_CONFIG = {
     },
     starter: {
       id: "starter",
-      name: "新手起步版",
-      monthlyQuota: 30,
-      isPopular: false,
-      blurb: "剛起步、少量多樣的小賣場",
-      features: [
-        "每月最高 30 筆訂單",
-        "NovaStore 專屬個人賣場",
-        "代購／團購雙模式",
-        "超商取貨與多規格選購",
-        "LINE 自動對帳通知（全方案標配）",
-      ],
-      prices: {
-        monthly: { total: 149, avgMonthly: 149 },
-        half_yearly: { total: 799, avgMonthly: 133 },
-        yearly: { total: 1490, avgMonthly: 124 },
-      },
-    },
-    pro: {
-      id: "pro",
-      name: "熱銷成長版",
-      monthlyQuota: 100,
+      name: "專業版",
+      /** -1 = 無限筆數 */
+      monthlyQuota: -1,
       isPopular: true,
-      popularBadge: "最受歡迎",
-      blurb: "穩定出單、頻繁開團的專職賣場",
+      popularBadge: "主推方案",
+      blurb: "穩定出單賣家的主力方案",
       features: [
-        "每月最高 100 筆訂單",
-        "NovaStore 專屬個人賣場",
-        "代購／團購雙模式",
-        "超商取貨與多規格選購",
-        "LINE 自動對帳通知（全方案標配）",
+        "無限筆數站內 ATM 自動對帳",
+        "固定運費與滿額免運優惠設定",
+        "LINE 每日帳務彙整通知",
+        "7-11 賣貨便／蝦皮無縫導流",
       ],
       prices: {
         monthly: { total: 299, avgMonthly: 299 },
@@ -357,23 +338,41 @@ export const PRICING_CONFIG = {
         yearly: { total: 2990, avgMonthly: 249 },
       },
     },
-    unlimited: {
-      id: "unlimited",
-      name: "旗艦無限版",
+    pro: {
+      id: "pro",
+      name: "旗艦版",
       monthlyQuota: -1,
       isPopular: false,
-      blurb: "熱門團媽、直播主與中大型團隊",
+      blurb: "多品牌與數據成長需求",
       features: [
-        "每月訂單處理數無上限",
-        "NovaStore 專屬個人賣場",
-        "代購／團購雙模式",
-        "超商取貨與多規格選購",
-        "LINE 自動對帳通知（全方案標配）",
+        "包含專業版所有功能",
+        "多賣場／多品牌切換管理",
+        "營收與熱門商品數據分析",
+        "專屬優先技術支援",
       ],
       prices: {
         monthly: { total: 499, avgMonthly: 499 },
         half_yearly: { total: 2690, avgMonthly: 448 },
-        yearly: { total: 4990, avgMonthly: 415 },
+        yearly: { total: 4990, avgMonthly: 416 },
+      },
+    },
+    /** Legacy alias of 旗艦版 — kept for existing subscribers */
+    unlimited: {
+      id: "unlimited",
+      name: "旗艦版",
+      monthlyQuota: -1,
+      isPopular: false,
+      blurb: "多品牌與數據成長需求",
+      features: [
+        "包含專業版所有功能",
+        "多賣場／多品牌切換管理",
+        "營收與熱門商品數據分析",
+        "專屬優先技術支援",
+      ],
+      prices: {
+        monthly: { total: 499, avgMonthly: 499 },
+        half_yearly: { total: 2690, avgMonthly: 448 },
+        yearly: { total: 4990, avgMonthly: 416 },
       },
     },
   } satisfies Record<PlanType, PlanDefinition>,
@@ -384,7 +383,15 @@ export const FREE_TRIAL = PRICING_CONFIG.freeTrial;
 export const SIGNUP_EARLY_BIRD = PRICING_CONFIG.signupEarlyBird;
 export const EARLY_BIRD = PRICING_CONFIG.earlyBird;
 export const PLAN_CATALOG = PRICING_CONFIG.plans;
+/** All paid plan ids accepted by checkout / DB */
 export const PAID_PLAN_KEYS: PaidPlanKey[] = ["starter", "pro", "unlimited"];
+/** Marketing + upgrade UI：1 免費 + 2 收費（與拓脈架構對齊） */
+export const PRIMARY_PAID_PLAN_KEYS: PaidPlanKey[] = ["starter", "pro"];
+export const LANDING_PLAN_KEYS: Array<"free" | PaidPlanKey> = [
+  "free",
+  "starter",
+  "pro",
+];
 
 export const FREE_PLAN_LIMIT = PLAN_CATALOG.free.monthlyQuota;
 export const STARTER_PLAN_LIMIT = PLAN_CATALOG.starter.monthlyQuota;
@@ -397,7 +404,7 @@ export const PLAN_RANK: Record<PlanType, number> = {
   free: 0,
   starter: 1,
   pro: 2,
-  unlimited: 3,
+  unlimited: 2,
 };
 
 export function normalizeBillingCycle(
@@ -412,8 +419,9 @@ export function normalizePlan(
   plan: string | null | undefined
 ): PlanType {
   if (plan === "starter" || plan === "plus") return "starter";
-  if (plan === "pro") return "pro";
-  if (plan === "unlimited" || plan === "premium") return "unlimited";
+  // New purchases use `pro`；既有 unlimited 訂戶維持原 id
+  if (plan === "pro" || plan === "premium") return "pro";
+  if (plan === "unlimited") return "unlimited";
   return "free";
 }
 

@@ -1,10 +1,6 @@
 import type { Metadata } from "next";
 import { siteConfig } from "@/lib/site";
-import {
-  BILLING_CYCLES,
-  FREE_TRIAL,
-  PLAN_CATALOG,
-} from "@/types/database";
+import { FREE_TRIAL, PLAN_CATALOG } from "@/types/database";
 
 export const metadata: Metadata = {
   title: "服務條款與訂閱退款政策",
@@ -54,32 +50,23 @@ export default function TermsPage() {
         <ul className="list-disc space-y-2 pl-5">
           <li>{FREE_TRIAL.description}。</li>
           <li>
-            免費體驗版：每月 {PLAN_CATALOG.free.monthlyQuota} 筆。
+            {PLAN_CATALOG.free.name}：每月{" "}
+            {PLAN_CATALOG.free.monthlyQuota}{" "}
+            筆站內 ATM 自動對帳額度（NT$0）。
           </li>
           <li>
-            {PLAN_CATALOG.starter.name}：每月最高{" "}
-            {PLAN_CATALOG.starter.monthlyQuota} 筆訂單；月繳 NT$
-            {PLAN_CATALOG.starter.prices.monthly.total}、半年繳 NT$
-            {PLAN_CATALOG.starter.prices.half_yearly.total}（
-            {BILLING_CYCLES.half_yearly.badge ?? "省 10%"}）、年繳 NT$
-            {PLAN_CATALOG.starter.prices.yearly.total}（
-            {BILLING_CYCLES.yearly.badge ?? "省 17%"}）。
+            {PLAN_CATALOG.starter.name}（主推）：無限筆數站內 ATM
+            自動對帳；月繳 NT$
+            {PLAN_CATALOG.starter.prices.monthly.total}、年繳 NT$
+            {PLAN_CATALOG.starter.prices.yearly.total}。
           </li>
           <li>
-            {PLAN_CATALOG.pro.name}：每月最高 {PLAN_CATALOG.pro.monthlyQuota}{" "}
-            筆訂單；月繳 NT$
-            {PLAN_CATALOG.pro.prices.monthly.total}、半年繳 NT$
-            {PLAN_CATALOG.pro.prices.half_yearly.total}、年繳 NT$
+            {PLAN_CATALOG.pro.name}：含專業版所有功能，另含多賣場／數據分析與優先支援；月繳
+            NT${PLAN_CATALOG.pro.prices.monthly.total}、年繳 NT$
             {PLAN_CATALOG.pro.prices.yearly.total}。
           </li>
           <li>
-            {PLAN_CATALOG.unlimited.name}：每月訂單處理數無上限；月繳 NT$
-            {PLAN_CATALOG.unlimited.prices.monthly.total}、半年繳 NT$
-            {PLAN_CATALOG.unlimited.prices.half_yearly.total}、年繳 NT$
-            {PLAN_CATALOG.unlimited.prices.yearly.total}。
-          </li>
-          <li>
-            付款完成且綠界回傳成功後，帳號方案將更新為對應付費方案。
+            付費方案經綠界 ECPay 結帳，付款成功並回傳確認後即開通對應方案。
           </li>
         </ul>
       </section>
