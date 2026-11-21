@@ -2,7 +2,12 @@
 
 代購／團購獨立賣場與自動對帳平台（獨立 Next.js 專案）。
 
-本專案自 `paycheck-tw` 在 NovaOS 多模組升級**之前**的提交 `11cf824` 完整抽出，保留 NovaStore 核心功能，可獨立部署與執行。
+本專案自舊主站在 NovaOS 多模組升級**之前**的提交 `11cf824` 完整抽出，保留 NovaStore 核心功能，可獨立部署與執行。
+
+- **正式網址：** https://novastore-omega.vercel.app  
+- **品牌主站（拓新雲端）：** https://paycheck.com.de（獨立 repo `novaos`，互不覆蓋）
+
+在拓新雲端主專案可用 `npm run ecosystem:sync` 把本專案 checkout 到 `ecosystem/sites/novastore` 一次編輯；日常單一修改請直接在本專案進行。
 
 ## 核心功能
 
