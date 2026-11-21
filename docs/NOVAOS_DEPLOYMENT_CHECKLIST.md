@@ -16,9 +16,9 @@
 
 | 站 | Vercel 專案 | 建議 | 備註 |
 |----|-------------|------|------|
-| hub | `novaos` → paycheck.com.de | 本輪 build ✅；文案／redirect 後部署 | |
-| NovaStore | `novastore` | 本輪 build ✅；`/legal` 後部署 | |
-| DocMate | `docmate-ai` | 本輪 build ✅；法律頁後部署 | |
+| hub | `novaos` → paycheck.com.de | **已部署正式**（本輪） | |
+| NovaStore | `novastore` → novastore-omega | **已部署正式**（本輪 `/legal`） | |
+| DocMate | `docmate-ai` → docmate-ai-one | **已部署正式**（本輪法律頁） | |
 | 拓脈 | `taiwanbiz` | **不可部署碼** | Git Not connected |
 | 訂閱管家 | `temporary-speedy-reef-cy4xhhu` | **不可部署碼** | 無 Git |
 | 拓維 | `novadimension` | **不可部署碼** | 無 Git |
