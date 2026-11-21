@@ -2,7 +2,7 @@
 
 /** Default production host for standalone NovaStore (override with NEXT_PUBLIC_BASE_URL). */
 export const PRODUCTION_HOST =
-  process.env.NEXT_PUBLIC_PRODUCTION_HOST || "novastore.vercel.app";
+  process.env.NEXT_PUBLIC_PRODUCTION_HOST || "novastore-omega.vercel.app";
 export const PRODUCTION_URL = `https://${PRODUCTION_HOST}`;
 
 export function getSiteUrl(): string {
