@@ -8,3 +8,4 @@ public/swe-worker-*.js
 public/sw.js
 tsconfig.tsbuildinfo
 .vercel
+.env*
