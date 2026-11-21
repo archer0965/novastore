@@ -149,13 +149,22 @@ export function NovaOsAccountBar({ className }: { className?: string }) {
               NovaOS Master Admin
             </a>
             <a
-              href={`${NOVAOS_HUB_URL}/dashboard`}
+              href={`${NOVAOS_HUB_URL}/dashboard/pass`}
               target="_blank"
               rel="noopener noreferrer"
               className="block rounded-xl px-3 py-2 text-sm font-medium text-sky-700 hover:bg-sky-50"
               onClick={() => setMenuOpen(false)}
             >
-              前往 NovaOS 主站中控
+              統一會員中心（訂閱／權益）
+            </a>
+            <a
+              href={`${NOVAOS_HUB_URL}/dashboard`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block rounded-xl px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-secondary"
+              onClick={() => setMenuOpen(false)}
+            >
+              前往 NovaOS 主站
             </a>
             <button
               type="button"

@@ -36,6 +36,24 @@ export default function LegalIndexPage() {
           </Link>
         </li>
         <li>
+          <Link
+            href="/refund"
+            className="font-medium text-primary underline-offset-2 hover:underline"
+          >
+            退款說明
+          </Link>
+        </li>
+        <li>
+          <a
+            href={siteConfig.lineOfficialUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-medium text-primary underline-offset-2 hover:underline"
+          >
+            LINE 客服 @469uykad
+          </a>
+        </li>
+        <li>
           <a
             href="https://paycheck.com.de/legal"
             target="_blank"
@@ -43,6 +61,16 @@ export default function LegalIndexPage() {
             className="font-medium text-primary underline-offset-2 hover:underline"
           >
             NovaOS 法律中心（總站）
+          </a>
+        </li>
+        <li>
+          <a
+            href="https://paycheck.com.de/dashboard/pass"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-medium text-primary underline-offset-2 hover:underline"
+          >
+            統一會員中心（訂閱中控）
           </a>
         </li>
       </ul>

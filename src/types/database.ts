@@ -306,9 +306,10 @@ export const PRICING_CONFIG = {
     },
     yearly: {
       id: "yearly" as const,
-      label: "年繳 (省 17%)",
-      discount: 0.83,
-      badge: "省 17%（買 10 個月送 2 個月）",
+      label: "年繳",
+      /** Display fold for general tier — hub authority is 0.85 (see paycheck pricing-tiers) */
+      discount: 0.85,
+      badge: "對齊主站一般資格 85 折",
       months: 12,
     },
   } satisfies Record<BillingCycle, CycleDefinition>,

@@ -21,7 +21,7 @@ export const siteConfig = {
     process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "archer0965@gmail.com",
   lineOfficialUrl:
     process.env.NEXT_PUBLIC_LINE_OFFICIAL_URL ||
-    "https://line.me/R/ti/p/@801rbtgm",
+    "https://line.me/R/ti/p/@469uykad",
   companyAddress:
     process.env.NEXT_PUBLIC_COMPANY_ADDRESS || "台灣（線上服務）",
 };
