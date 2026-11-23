@@ -187,7 +187,7 @@ export function OrderTrackPanel() {
           <HintCard
             icon={Wallet}
             title="對帳進度"
-            text="清楚顯示未對帳／已確認收款狀態。"
+            text="清楚顯示待付款／商家已確認收款狀態。"
           />
           <HintCard
             icon={PackageCheck}

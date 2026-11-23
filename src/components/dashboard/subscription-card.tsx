@@ -16,6 +16,8 @@ import {
 import {
   EARLY_BIRD,
   SIGNUP_EARLY_BIRD,
+  formatPartnerDiscountPhrase,
+  formatSignupEarlyBirdDiscountPhrase,
   getCycleLabel,
   getPlanDisplayName,
   hasLifetimeSpecialDiscount,
@@ -110,12 +112,13 @@ export function SubscriptionCard({
             </h2>
             {earlyBird && !isAdmin ? (
               <p className="mt-1 text-sm font-medium text-amber-700">
-                {EARLY_BIRD.label} · 月 9 折／半年 82 折／年 75 折（終身）
+                {EARLY_BIRD.label} · {formatPartnerDiscountPhrase()}（終身）
               </p>
             ) : null}
             {launchEarlyBird && !earlyBird && !isAdmin ? (
               <p className="mt-1 text-sm font-medium text-amber-700">
-                {SIGNUP_EARLY_BIRD.label} · 月 9 折／半年 85 折／年 8 折（終身）
+                {SIGNUP_EARLY_BIRD.label} · {formatSignupEarlyBirdDiscountPhrase()}
+                （終身）
               </p>
             ) : null}
           </div>

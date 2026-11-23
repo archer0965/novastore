@@ -61,6 +61,16 @@ export function BuyerOrderForm({ product }: { product: PublicStoreProduct }) {
   } | null>(null);
   const [couponError, setCouponError] = useState<string | null>(null);
   const submittingRef = useRef(false);
+  /** Stable per-form idempotency token — survives double-click / retry */
+  const clientRequestIdRef = useRef(
+    typeof crypto !== "undefined" && "randomUUID" in crypto
+      ? crypto.randomUUID()
+      : "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+          const r = (Math.random() * 16) | 0;
+          const v = c === "x" ? r : (r & 0x3) | 0x8;
+          return v.toString(16);
+        })
+  );
 
   const closed =
     product.status === "closed" ||
@@ -232,6 +242,7 @@ export function BuyerOrderForm({ product }: { product: PublicStoreProduct }) {
           store_info: storeInfo,
           receiver_phone: receiverPhone,
           payment_type: "atm",
+          client_request_id: clientRequestIdRef.current,
           coupon_code: appliedCoupon?.code || null,
           items: lines.map(({ color, size, quantity }) => ({
             color,

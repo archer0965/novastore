@@ -27,7 +27,7 @@ export function PendingReconcileDesk({
           <h2 className="font-display text-lg font-semibold">對帳工作台</h2>
         </div>
         <p className="mt-2 text-sm text-muted-foreground">
-          目前沒有待對帳訂單。匯款回報與商店訂單核對完成後會顯示於此。
+          目前沒有待付款訂單。匯款回報與商店訂單核對完成後會顯示於此。
         </p>
         <Button asChild variant="outline" className="mt-3" size="sm">
           <Link href="/dashboard/orders?focus=pending">查看全部訂單</Link>
@@ -61,10 +61,10 @@ export function PendingReconcileDesk({
         <div>
           <div className="flex items-center gap-2">
             <Banknote className="h-5 w-5 text-amber-700" />
-            <h2 className="font-display text-lg font-semibold">待對帳列表</h2>
+            <h2 className="font-display text-lg font-semibold">待付款列表</h2>
           </div>
           <p className="mt-1 text-sm text-muted-foreground">
-            醒目顯示末五碼、金額與訂單編號，支援一鍵勾稽確認。
+            醒目顯示末五碼、金額與訂單編號；商家確認後標記「商家已確認收款」（末五碼比對≠銀行入帳確認）。
           </p>
         </div>
         <p className="text-sm font-semibold text-amber-900">

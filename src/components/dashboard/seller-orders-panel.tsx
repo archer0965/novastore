@@ -11,7 +11,12 @@ import { cn } from "@/lib/utils";
 import { coerceOrderItems } from "@/lib/order-items";
 import { formatDateTime } from "@/lib/utils-format";
 import type { SellerOrderListItem } from "@/lib/store";
-import { STORE_TYPE_LABELS, type ConvenienceStoreType } from "@/types/database";
+import {
+  ORDER_FULFILLMENT_STATUS_LABELS,
+  ORDER_PAYMENT_STATUS_LABELS,
+  STORE_TYPE_LABELS,
+  type ConvenienceStoreType,
+} from "@/types/database";
 
 type FulfillmentFilter = "all" | "unfulfilled" | "fulfilled";
 type PaymentFilter = "all" | "pending" | "matched";
@@ -199,7 +204,9 @@ export function SellerOrdersPanel({
       if (!res.ok) throw new Error(json.error || "更新失敗");
       if (body.payment_status) {
         toast.success(
-          body.payment_status === "matched" ? "已標記對帳成功" : "已改回待對帳"
+          body.payment_status === "matched"
+            ? "已標記商家已確認收款"
+            : "已改回待付款"
         );
       }
       if (body.fulfillment_status) {
@@ -273,11 +280,11 @@ export function SellerOrdersPanel({
             { id: "all", label: `全部 (${counts.all})` },
             {
               id: "pending_remit",
-              label: `待對帳 (${lifecycleCounts.pending_remit})`,
+              label: `待付款 (${lifecycleCounts.pending_remit})`,
             },
             {
               id: "reconciled",
-              label: `已對帳 (${lifecycleCounts.reconciled})`,
+              label: `商家已確認收款 (${lifecycleCounts.reconciled})`,
             },
             {
               id: "awaiting_ship",
@@ -295,22 +302,34 @@ export function SellerOrdersPanel({
           onChange={setFulfillmentFilter}
           options={[
             { id: "all", label: `全部 (${counts.all})` },
-            { id: "unfulfilled", label: `未出貨 (${counts.unfulfilled})` },
-            { id: "fulfilled", label: `已出貨 (${counts.fulfilled})` },
+            {
+              id: "unfulfilled",
+              label: `${ORDER_FULFILLMENT_STATUS_LABELS.unfulfilled} (${counts.unfulfilled})`,
+            },
+            {
+              id: "fulfilled",
+              label: `${ORDER_FULFILLMENT_STATUS_LABELS.fulfilled} (${counts.fulfilled})`,
+            },
           ]}
         />
         <FilterRow
-          label="對帳篩選"
+          label="收款篩選"
           value={paymentFilter}
           onChange={setPaymentFilter}
           options={[
             { id: "all", label: `全部 (${counts.all})` },
-            { id: "pending", label: `未對帳 (${counts.pending})` },
-            { id: "matched", label: `已對帳 (${counts.matched})` },
+            {
+              id: "pending",
+              label: `${ORDER_PAYMENT_STATUS_LABELS.pending} (${counts.pending})`,
+            },
+            {
+              id: "matched",
+              label: `${ORDER_PAYMENT_STATUS_LABELS.matched} (${counts.matched})`,
+            },
           ]}
         />
         <p className="text-[11px] text-muted-foreground">
-          狀態分類：待對帳 → 已對帳 → 待出貨 → 已出貨；可再細調出貨／對帳篩選。
+          狀態：待付款 → 商家已確認收款 → 待出貨 → 已出貨。匯款回報「待核對」在對帳中心處理；末五碼比對相符≠銀行已確認入帳。
         </p>
       </div>
 
@@ -457,9 +476,13 @@ export function SellerOrdersPanel({
                       </td>
                       <td className="px-3 py-3 align-top">
                         {payment === "matched" ? (
-                          <span className="text-emerald-700">已對帳</span>
+                          <span className="text-emerald-700">
+                            {ORDER_PAYMENT_STATUS_LABELS.matched}
+                          </span>
                         ) : (
-                          <span className="text-amber-700">未對帳</span>
+                          <span className="text-amber-700">
+                            {ORDER_PAYMENT_STATUS_LABELS.pending}
+                          </span>
                         )}
                       </td>
                       <td className="px-3 py-3 align-top">
@@ -492,8 +515,8 @@ export function SellerOrdersPanel({
                             }
                           >
                             {payment === "pending"
-                              ? "✅ 已對帳成功"
-                              : "撤銷對帳"}
+                              ? "確認收款"
+                              : "改回待付款"}
                           </Button>
                           <Button
                             type="button"
@@ -696,7 +719,9 @@ function OrderCard({
               : "bg-amber-100 text-amber-900"
           )}
         >
-          {payment === "matched" ? "已對帳" : "未對帳"}
+          {payment === "matched"
+            ? ORDER_PAYMENT_STATUS_LABELS.matched
+            : ORDER_PAYMENT_STATUS_LABELS.pending}
         </span>
         <span
           className={cn(
@@ -706,7 +731,9 @@ function OrderCard({
               : "bg-rose-100 text-rose-900"
           )}
         >
-          {fulfillment === "fulfilled" ? "已出貨" : "未出貨"}
+          {fulfillment === "fulfilled"
+            ? ORDER_FULFILLMENT_STATUS_LABELS.fulfilled
+            : ORDER_FULFILLMENT_STATUS_LABELS.unfulfilled}
         </span>
         <span className="rounded-md bg-secondary px-2 py-0.5 font-mono tabular-nums">
           末五碼 {order.atm_last5}
@@ -725,7 +752,7 @@ function OrderCard({
             })
           }
         >
-          {payment === "pending" ? "標記已對帳" : "撤銷對帳"}
+          {payment === "pending" ? "確認收款" : "改回待付款"}
         </Button>
         <Button
           type="button"

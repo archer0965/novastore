@@ -20,7 +20,7 @@ const jsonLd = {
   operatingSystem: "Web",
   url: PRODUCTION_URL,
   description:
-    "NovaStore｜3 分鐘建立 IG 專屬獨立賣場與自動對帳。告別手動對帳與漏單，支援匯款末五碼自動勾稽、運費設定與賣貨便／蝦皮無縫導流。",
+    "NovaStore｜3 分鐘建立 IG 專屬獨立賣場。告別手動對帳與漏單，支援匯款末五碼比對助手、運費設定與賣貨便／蝦皮無縫導流。",
   offers: {
     "@type": "Offer",
     price: "0",

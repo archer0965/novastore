@@ -10,8 +10,8 @@ export function ShareLink({ url }: { url: string }) {
     try {
       if (navigator.share) {
         await navigator.share({
-          title: "轉帳後請點此自動對帳",
-          text: "轉帳完成後請點連結回報帳號末五碼，方便賣家對帳出貨。",
+          title: "轉帳後請點此回報末五碼",
+          text: "轉帳完成後請點連結回報帳號末五碼，方便賣家核對後出貨。",
           url,
         });
         return;

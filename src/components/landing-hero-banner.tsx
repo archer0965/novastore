@@ -53,16 +53,16 @@ export function LandingHeroBanner({
           />
         </div>
         <p className="animate-fade-up delay-100 mt-5 text-xs font-semibold tracking-[0.18em] text-sky-300/90">
-          一站式獨立開店 × 自動對帳
+          一站式獨立開店 × 匯款核對助手
         </p>
 
         <h1 className="animate-fade-up delay-100 mt-5 max-w-4xl text-balance font-display text-3xl font-bold leading-snug tracking-tight text-white md:text-5xl md:leading-[1.15]">
-          3 分鐘建立 IG 專屬獨立賣場與自動對帳：告別手動對帳與漏單，支援匯款末五碼勾稽、運費設定與賣貨便／蝦皮導流。
+          3 分鐘建立 IG 專屬獨立賣場：告別手動對帳與漏單，支援匯款末五碼比對、運費設定與賣貨便／蝦皮導流。
         </h1>
 
         <p className="animate-fade-up delay-200 mt-6 max-w-3xl text-pretty text-base leading-relaxed text-sky-100/90 md:mt-8 md:text-lg md:leading-relaxed">
-          專為台灣代購、團購主、微商打造的極速開店工具。支援多規格選購、超商取貨、團購達標進度，買家匯款後
-          NovaStore 系統自動對帳、LINE 秒收通知，告別 Excel 與截圖地獄！
+          專為台灣代購、團購主、微商打造的極速開店工具。支援多規格選購、超商取貨、團購達標進度；買家回報末五碼後
+          NovaStore 協助比對並 LINE 通知商家核對（比對結果≠銀行已確認入帳）。
         </p>
 
         <div className="animate-fade-up delay-300 mt-10 flex flex-wrap items-center justify-center gap-3 md:mt-12">

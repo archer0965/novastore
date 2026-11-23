@@ -95,7 +95,7 @@ export function SellerMetricsDashboard({
             hint="已成立訂單金額加總"
           />
           <PeriodStrip
-            title="待對帳金額"
+            title="待付款金額"
             revenue={month.pendingReconcileAmount || 0}
             orders={month.pendingReconcileOrders || 0}
             hint="payment 尚未 matched"

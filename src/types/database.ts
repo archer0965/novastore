@@ -57,7 +57,7 @@ export interface Profile {
   is_early_bird?: boolean | null;
   /** lifetime_special = permanent 特約店家 checkout discount */
   discount_tier?: DiscountTier | string | null;
-  /** 註冊早鳥：前 15 名限量 14 天試用 */
+  /** 註冊早鳥：前 15 名限量（試用天數見 SIGNUP_EARLY_BIRD.trialDays） */
   signup_early_bird?: boolean | null;
   monthly_usage_count: number;
   usage_month: string;
@@ -66,7 +66,13 @@ export interface Profile {
 
 export type ProductMode = "agency" | "group_buy";
 export type ProductStatus = "active" | "success" | "closed";
+/**
+ * Order payment lifecycle (store orders):
+ * - pending = 待付款（已下單，等待匯款／商家確認）
+ * - matched = 商家已確認收款
+ */
 export type OrderPaymentStatus = "pending" | "matched";
+/** unfulfilled = 未出貨；fulfilled = 已出貨 */
 export type OrderFulfillmentStatus = "unfulfilled" | "fulfilled";
 /** atm = ATM 轉帳；myship_cod = 外部連結結帳（賣貨便／蝦皮等） */
 export type OrderPaymentType = "atm" | "myship_cod";
@@ -75,6 +81,56 @@ export type ConvenienceStoreType = "711" | "family";
 export type CouponDiscountType = "percentage" | "fixed";
 /** unlimited=不限總次數(每人手機仍限一次)；limited=全店總限量 */
 export type CouponUsageType = "unlimited" | "limited";
+
+/** Canonical user-visible labels for order payment status */
+export const ORDER_PAYMENT_STATUS_LABELS: Record<OrderPaymentStatus, string> = {
+  pending: "待付款",
+  matched: "商家已確認收款",
+};
+
+/** Canonical user-visible labels for fulfillment */
+export const ORDER_FULFILLMENT_STATUS_LABELS: Record<
+  OrderFulfillmentStatus,
+  string
+> = {
+  unfulfilled: "未出貨",
+  fulfilled: "已出貨",
+};
+
+/**
+ * Payment-report status labels.
+ * 待核對 = 買家已回報末五碼，待商家核對；比對相符 ≠ 銀行已確認入帳。
+ */
+export const REPORT_STATUS_LABELS: Record<ReportStatus, string> = {
+  pending: "待核對",
+  confirmed: "商家已確認收款",
+  auto_confirmed: "末五碼比對相符",
+  rejected: "已拒絕",
+  needs_contact: "異常／需聯繫",
+};
+
+export function orderPaymentStatusLabel(
+  status: OrderPaymentStatus | string | null | undefined
+): string {
+  if (status === "matched") return ORDER_PAYMENT_STATUS_LABELS.matched;
+  return ORDER_PAYMENT_STATUS_LABELS.pending;
+}
+
+export function orderFulfillmentStatusLabel(
+  status: OrderFulfillmentStatus | string | null | undefined
+): string {
+  if (status === "fulfilled") return ORDER_FULFILLMENT_STATUS_LABELS.fulfilled;
+  return ORDER_FULFILLMENT_STATUS_LABELS.unfulfilled;
+}
+
+export function reportStatusLabel(
+  status: ReportStatus | string | null | undefined
+): string {
+  if (status && status in REPORT_STATUS_LABELS) {
+    return REPORT_STATUS_LABELS[status as ReportStatus];
+  }
+  return REPORT_STATUS_LABELS.pending;
+}
 
 export interface Coupon {
   id: string;
@@ -172,6 +228,8 @@ export interface StoreOrder {
   subtotal_amount?: number | null;
   /** 該筆實際運費（免運為 0） */
   shipping_fee?: number | null;
+  /** Client-generated idempotency token (unique when set) */
+  client_request_id?: string | null;
   created_at: string;
 }
 
@@ -322,8 +380,8 @@ export const PRICING_CONFIG = {
       isPopular: false,
       blurb: "適合體驗",
       features: [
-        "每月 15 筆站內 ATM 自動對帳額度",
-        "買家填寫匯款末五碼自動勾稽",
+        "每月 15 筆站內 ATM 末五碼比對額度",
+        "買家回報匯款末五碼，協助商家核對",
         "7-11 賣貨便／蝦皮外部導流",
         "基礎訂單管理後台",
       ],
@@ -342,9 +400,9 @@ export const PRICING_CONFIG = {
       popularBadge: "主推方案",
       blurb: "穩定出單賣家的主力方案",
       features: [
-        "無限筆數站內 ATM 自動對帳",
+        "無限筆數站內 ATM 末五碼比對",
         "固定運費與滿額免運優惠設定",
-        "LINE 每日帳務彙整通知",
+        "LINE 每日帳務彙整通知（非銀行入帳確認）",
         "7-11 賣貨便／蝦皮無縫導流",
       ],
       // Prices locked to NovaOS hub catalog (owner authority 2026-11-22)
@@ -366,14 +424,17 @@ export const PRICING_CONFIG = {
         "營收與熱門商品數據分析",
         "專屬優先技術支援",
       ],
-      // Aligned to NovaOS hub unlimited / 旗艦 base prices
+      // Aligned to NovaOS hub flagship / unlimited entitlement authority
       prices: {
         monthly: { total: 499, avgMonthly: 499 },
         half_yearly: { total: 2994, avgMonthly: 499 },
         yearly: { total: 5988, avgMonthly: 499 },
       },
     },
-    /** Legacy alias of 旗艦版 — kept for existing subscribers */
+    /**
+     * Legacy DB id — same entitlements／display as hub `pro` 旗艦版.
+     * New purchases normalize to `pro`; keep for existing subscribers.
+     */
     unlimited: {
       id: "unlimited",
       name: "旗艦版",
@@ -399,6 +460,10 @@ export const BILLING_CYCLES = PRICING_CONFIG.billingCycles;
 export const FREE_TRIAL = PRICING_CONFIG.freeTrial;
 export const SIGNUP_EARLY_BIRD = PRICING_CONFIG.signupEarlyBird;
 export const EARLY_BIRD = PRICING_CONFIG.earlyBird;
+/** Compile-time lock: signup early-bird trial days must match FREE_TRIAL */
+const _signupTrialDaysLock: typeof FREE_TRIAL.durationDays =
+  SIGNUP_EARLY_BIRD.trialDays;
+void _signupTrialDaysLock;
 export const PLAN_CATALOG = PRICING_CONFIG.plans;
 /** All paid plan ids accepted by checkout / DB */
 export const PAID_PLAN_KEYS: PaidPlanKey[] = ["starter", "pro", "unlimited"];
@@ -590,6 +655,30 @@ export function formatDiscountFold(multiplier: number): string {
   return `${pct} 折`;
 }
 
+/** 特約店家折扣短語（對齊 EARLY_BIRD.cycleMultipliers／hub VIP） */
+export function formatPartnerDiscountPhrase(): string {
+  const m = EARLY_BIRD.cycleMultipliers;
+  return `月繳 ${formatDiscountFold(m.monthly)}／半年繳 ${formatDiscountFold(m.half_yearly)}／年繳 ${formatDiscountFold(m.yearly)}`;
+}
+
+/** 註冊早鳥折扣短語（對齊 SIGNUP_EARLY_BIRD.cycleMultipliers） */
+export function formatSignupEarlyBirdDiscountPhrase(): string {
+  const m = SIGNUP_EARLY_BIRD.cycleMultipliers;
+  return `月繳 ${formatDiscountFold(m.monthly)}／半年 ${formatDiscountFold(m.half_yearly)}／整年 ${formatDiscountFold(m.yearly)}`;
+}
+
+/**
+ * Display plan for entitlements UI: legacy `unlimited` shares hub `pro` 旗艦版.
+ */
+export function entitlementPlanKey(
+  plan: PlanType | string | null | undefined
+): "free" | "starter" | "pro" {
+  const p = normalizePlan(plan);
+  if (p === "starter") return "starter";
+  if (p === "pro" || p === "unlimited") return "pro";
+  return "free";
+}
+
 export function getCheckoutAmount(
   plan: PaidPlanKey,
   cycle: BillingCycle,
@@ -665,7 +754,7 @@ export function trialEndsAtFromNow(now: Date = new Date()): string {
   return d.toISOString();
 }
 
-/** NovaStore：所有方案（含免費／試用）皆標配智慧自動對帳 */
+/** NovaStore：所有方案（含免費／試用）皆標配末五碼比對助手 */
 export function canUseAutoReconcile(
   _plan?: PlanType | string | null,
   _trialEndsAt?: string | null,

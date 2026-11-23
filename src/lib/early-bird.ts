@@ -282,7 +282,7 @@ export async function assignEarlyBird(options: {
   return {
     success: true,
     message: already
-      ? "已重新套用特約店家優惠（14 天試用＋終身折扣）"
+      ? `已重新套用特約店家優惠（${EARLY_BIRD.trialDays} 天試用＋終身折扣）`
       : "成功開通特約店家，優惠已立即生效！",
     used: after,
     userId: user.id,

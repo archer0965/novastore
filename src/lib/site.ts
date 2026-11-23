@@ -15,7 +15,7 @@ export function getSiteUrl(): string {
 export const siteConfig = {
   name: "NovaStore",
   legalName: "NovaStore",
-  tagline: "3 分鐘建立 IG 專屬獨立賣場與自動對帳｜末五碼勾稽、賣貨便／蝦皮導流",
+  tagline: "3 分鐘建立 IG 專屬獨立賣場｜末五碼比對助手、賣貨便／蝦皮導流",
   url: PRODUCTION_URL,
   supportEmail:
     process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "archer0965@gmail.com",

@@ -94,7 +94,7 @@ export function AuthForm({
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
             {mode === "login"
-              ? "進入賣家控制台管理賣場、訂單與自動對帳"
+              ? "進入賣家控制台管理賣場、訂單與匯款核對"
               : "3 分鐘建立 IG 專屬獨立賣場，粉絲自己下單結帳"}
           </p>
           {mode === "signup" && signupHint ? (

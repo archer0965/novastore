@@ -25,8 +25,8 @@ export function LandingPricing() {
           定價與方案
         </h2>
         <p className="mt-3 max-w-2xl text-muted-foreground">
-          1 款免費＋2 款收費（專業版／旗艦版）。價目以本站為準；付費升級統一走拓新雲端主站綠界
-          ECPay。
+          1 款免費＋2 款收費（專業版／旗艦版；既有 unlimited 與旗艦同權益）。方案權益對齊拓新雲端
+          NovaOS 主站；付費升級統一走主站綠界 ECPay。
         </p>
 
         <div className="mt-6 inline-flex flex-wrap rounded-xl bg-secondary p-1">

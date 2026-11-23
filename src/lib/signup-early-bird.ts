@@ -177,6 +177,7 @@ export async function startFreeTrialForProfile(userId: string): Promise<{
 
   const status = await getSignupEarlyBirdStatus();
   const claimEarly = status.open;
+  // Trial length always from FREE_TRIAL; signup early-bird seats share the same days.
   const trialEndsAt = trialEndsAtFromNow();
   const discountTier = claimEarly
     ? SIGNUP_EARLY_BIRD.discountTier

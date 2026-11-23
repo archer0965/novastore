@@ -9,6 +9,9 @@ import { Input } from "@/components/ui/input";
 import { formatExpiresAtTaipei } from "@/lib/subscription";
 import type { PartnerStoreListItem } from "@/lib/early-bird";
 import {
+  EARLY_BIRD,
+  formatDiscountFold,
+  formatPartnerDiscountPhrase,
   getPlanDisplayName,
   normalizePlan,
 } from "@/types/database";
@@ -110,8 +113,12 @@ export function AdminEarlyBirdPanel() {
             特約店家管理
           </h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            輸入已註冊客戶 Email 立即開通：{data?.trialDays ?? 14}{" "}
-            天全功能試用＋終身月繳 8 折／半年 75 折／年繳 7 折。點列可看詳情以便活動聯繫。
+            輸入已註冊客戶 Email 立即開通：
+            {data?.trialDays ?? EARLY_BIRD.trialDays} 天全功能試用＋終身
+            {data?.cycleMultipliers
+              ? `月繳 ${formatDiscountFold(data.cycleMultipliers.monthly)}／半年繳 ${formatDiscountFold(data.cycleMultipliers.half_yearly)}／年繳 ${formatDiscountFold(data.cycleMultipliers.yearly)}`
+              : formatPartnerDiscountPhrase()}
+            。點列可看詳情以便活動聯繫。
           </p>
         </div>
         <div className="rounded-xl border bg-background/80 px-4 py-2 text-right">

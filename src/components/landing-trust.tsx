@@ -31,7 +31,7 @@ export function LandingTrust({ trialDays }: { trialDays: number }) {
           給忙碌代購／團購主的安心保證
         </h2>
         <p className="mt-3 max-w-2xl text-muted-foreground">
-          先免費建立獨立賣場、跑通收單與自動對帳，確認適合你的出貨節奏再決定要不要升級。
+          先免費建立獨立賣場、跑通收單與末五碼核對，確認適合你的出貨節奏再決定要不要升級。
         </p>
 
         <div className="mt-10 grid gap-8 md:grid-cols-3">

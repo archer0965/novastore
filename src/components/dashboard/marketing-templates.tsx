@@ -4,7 +4,7 @@ import { MessageCircle, Share2 } from "lucide-react";
 import { CopyButton } from "@/components/copy-button";
 
 export function MarketingTemplates({ shareUrl }: { shareUrl: string }) {
-  const igBio = `轉帳後請點此自動對帳👉 ${shareUrl}`;
+  const igBio = `轉帳後請點此回報末五碼👉 ${shareUrl}`;
   const lineAutoReply = `感謝購買！請點擊連結填寫轉帳後五碼：${shareUrl}`;
 
   return (

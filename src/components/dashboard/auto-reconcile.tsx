@@ -56,7 +56,7 @@ export function AutoReconcilePanel({
       if (matchedCount > 0) {
         toast.success(
           json.message ||
-            `已自動核對 ${matchedCount} 筆（解析 ${parsedCount} 筆）`
+            `末五碼比對相符 ${matchedCount} 筆（解析 ${parsedCount} 筆；≠銀行入帳確認）`
         );
         setText("");
         router.refresh();
@@ -83,11 +83,11 @@ export function AutoReconcilePanel({
         <div className="flex items-center gap-2">
           <ScanSearch className="h-5 w-5 text-primary" />
           <h2 className="font-display text-xl font-semibold">
-            一鍵自動對帳（智慧勾稽）
+            一鍵末五碼比對
           </h2>
         </div>
         <p className="mt-1 text-sm text-muted-foreground">
-          全方案標配。從手機銀行 App 複製交易明細貼上，系統會抓取金額與後五碼，自動核對買家回報。
+          全方案標配。從手機銀行 App 複製交易明細貼上，系統會抓取金額與後五碼比對買家回報。比對相符僅表示末五碼／金額吻合，不等於銀行已確認入帳。
         </p>
       </div>
 

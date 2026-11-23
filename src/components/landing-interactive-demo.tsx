@@ -227,7 +227,7 @@ function LineScreen({ active }: { active: boolean }) {
           <div className="rounded-2xl rounded-bl-md bg-white px-3.5 py-3 text-[#1a1a1a] shadow-md shadow-black/10">
             <div className="mb-1.5 flex items-center gap-1.5 text-[11px] font-semibold text-[#06C755]">
               <CheckCircle2 className="h-3.5 w-3.5" aria-hidden />
-              【新訂單已對帳】
+              【末五碼比對通知】
             </div>
             <p className="text-[13px] leading-relaxed">
               黑/M ·{" "}
@@ -312,11 +312,11 @@ export function LandingInteractiveDemo() {
         <div className="mx-auto max-w-2xl text-center">
           <p className="text-sm font-medium text-primary">產品運作動態視圖</p>
           <h2 className="mt-2 font-display text-2xl font-semibold tracking-tight md:text-3xl">
-            從獨立賣場下單到 LINE 入帳，一眼看懂
+            從獨立賣場下單到 LINE 核對通知，一眼看懂
           </h2>
           <p className="mt-3 text-muted-foreground">
             逛賣場、選規格、填超商、回報末五碼——賣家在 LINE
-            收到完整訂單與對帳成功推播。
+            收到訂單與末五碼比對通知（需商家再確認收款）。
           </p>
         </div>
 

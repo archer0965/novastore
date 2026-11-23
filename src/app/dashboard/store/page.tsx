@@ -123,7 +123,7 @@ export default async function StoreHubPage() {
       <section className="grid grid-cols-3 gap-3">
         {[
           { label: "進行中", value: String(active) },
-          { label: "待對帳", value: String(pending) },
+          { label: "待付款", value: String(pending) },
           { label: "已售件數", value: String(sold) },
         ].map((stat) => (
           <div

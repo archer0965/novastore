@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import { siteConfig } from "@/lib/site";
-import { EARLY_BIRD } from "@/types/database";
+import { EARLY_BIRD, formatPartnerDiscountPhrase } from "@/types/database";
 
 /** Compact header tag that jumps to the 特約店家 section. */
 export function PartnerStoreApplyTag() {
@@ -33,8 +33,9 @@ export function PartnerStoreSection() {
           {EARLY_BIRD.pitch}
         </p>
         <p className="mt-3 text-sm text-muted-foreground">
-          通過後專屬優惠：月繳 8 折／半年繳 75 折／年繳 7 折（終身續約），並享{" "}
-          {EARLY_BIRD.trialDays} 天全功能試用。名額不限。
+          通過後專屬優惠：{formatPartnerDiscountPhrase()}
+          （終身續約，對齊 NovaOS 主站），並享 {EARLY_BIRD.trialDays}{" "}
+          天全功能試用。名額不限。
         </p>
 
         <Link

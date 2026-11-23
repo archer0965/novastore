@@ -15,7 +15,11 @@ import { formatDateTime, formatTWD } from "@/lib/utils-format";
 import { cn } from "@/lib/utils";
 import { coerceOrderItems } from "@/lib/order-items";
 import type { StoreStatsItem } from "@/lib/store";
-import { STORE_TYPE_LABELS, type ConvenienceStoreType } from "@/types/database";
+import {
+  ORDER_PAYMENT_STATUS_LABELS,
+  STORE_TYPE_LABELS,
+  type ConvenienceStoreType,
+} from "@/types/database";
 
 type FulfillmentFilter = "all" | "unfulfilled" | "fulfilled";
 type PaymentFilter = "all" | "pending" | "matched";
@@ -104,7 +108,9 @@ export function StoreStatsPanel({
       if (!res.ok) throw new Error(json.error || "更新失敗");
       if (body.payment_status) {
         toast.success(
-          body.payment_status === "matched" ? "已標記對帳成功" : "已改回待對帳"
+          body.payment_status === "matched"
+            ? "已標記商家已確認收款"
+            : "已改回待付款"
         );
       }
       if (body.fulfillment_status) {
@@ -209,8 +215,8 @@ export function StoreStatsPanel({
           onChange={setPaymentFilter}
           options={[
             { id: "all", label: "全部" },
-            { id: "pending", label: "未對帳" },
-            { id: "matched", label: "已對帳" },
+            { id: "pending", label: ORDER_PAYMENT_STATUS_LABELS.pending },
+            { id: "matched", label: ORDER_PAYMENT_STATUS_LABELS.matched },
           ]}
         />
       </div>
@@ -260,7 +266,8 @@ export function StoreStatsPanel({
                 </div>
                 <p className="mt-1 text-sm text-muted-foreground">
                   下單 {item.order_count} 人 · 銷售 {item.ordered_quantity} 件 ·
-                  待對帳 {item.pending_count} · 已對帳 {item.matched_count} ·
+                  待付款 {item.pending_count} · 商家已確認收款{" "}
+                  {item.matched_count} ·
                   未出貨 {item.unfulfilled_count} · 已出貨 {item.fulfilled_count}
                   {item.stock != null
                     ? ` · 庫存剩餘 ${getRemainingStock(item) ?? 0}/${item.stock}`
@@ -484,11 +491,11 @@ export function StoreStatsPanel({
                                 <td className="py-2.5 pr-3">
                                   {payment === "matched" ? (
                                     <span className="text-emerald-700">
-                                      已對帳
+                                      商家已確認收款
                                     </span>
                                   ) : (
                                     <span className="text-amber-700">
-                                      待對帳
+                                      待付款
                                     </span>
                                   )}
                                 </td>
@@ -516,7 +523,7 @@ export function StoreStatsPanel({
                                           })
                                         }
                                       >
-                                        ✅ 已對帳成功
+                                        確認收款
                                       </Button>
                                     ) : (
                                       <Button
@@ -530,7 +537,7 @@ export function StoreStatsPanel({
                                           })
                                         }
                                       >
-                                        撤銷對帳
+                                        改回待付款
                                       </Button>
                                     )}
                                     {fulfillment === "unfulfilled" ? (
@@ -700,7 +707,7 @@ function OrderCard({
               : "bg-amber-100 text-amber-900"
           )}
         >
-          {payment === "matched" ? "已對帳" : "待對帳"}
+          {payment === "matched" ? ORDER_PAYMENT_STATUS_LABELS.matched : ORDER_PAYMENT_STATUS_LABELS.pending}
         </span>
         <span
           className={cn(
@@ -726,7 +733,7 @@ function OrderCard({
             })
           }
         >
-          {payment === "pending" ? "✅ 已對帳成功" : "撤銷對帳"}
+          {payment === "pending" ? "確認收款" : "改回待付款"}
         </Button>
         <Button
           type="button"

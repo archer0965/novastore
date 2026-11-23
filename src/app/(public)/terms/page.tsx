@@ -52,16 +52,17 @@ export default function TermsPage() {
           <li>
             {PLAN_CATALOG.free.name}：每月{" "}
             {PLAN_CATALOG.free.monthlyQuota}{" "}
-            筆站內 ATM 自動對帳額度（NT$0）。
+            筆站內 ATM 末五碼比對額度（NT$0）。末五碼比對≠銀行入帳確認。
           </li>
           <li>
             {PLAN_CATALOG.starter.name}（主推）：無限筆數站內 ATM
-            自動對帳；月繳 NT$
+            末五碼比對；月繳 NT$
             {PLAN_CATALOG.starter.prices.monthly.total}、年繳 NT$
             {PLAN_CATALOG.starter.prices.yearly.total}。
           </li>
           <li>
-            {PLAN_CATALOG.pro.name}：含專業版所有功能，另含多賣場／數據分析與優先支援；月繳
+            {PLAN_CATALOG.pro.name}
+            （含既有 unlimited／旗艦訂戶，權益對齊主站）：含專業版所有功能，另含多賣場／數據分析與優先支援；月繳
             NT${PLAN_CATALOG.pro.prices.monthly.total}、年繳 NT$
             {PLAN_CATALOG.pro.prices.yearly.total}。
           </li>

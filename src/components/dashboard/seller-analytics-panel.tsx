@@ -73,8 +73,8 @@ export function SellerAnalyticsPanel({
     () => [
       { name: "已出貨", value: data.summary.fulfilled },
       { name: "未出貨", value: data.summary.unfulfilled },
-      { name: "已對帳", value: data.summary.matched },
-      { name: "未對帳", value: data.summary.pending },
+      { name: "商家已確認收款", value: data.summary.matched },
+      { name: "待付款", value: data.summary.pending },
     ].filter((d) => d.value > 0),
     [data.summary]
   );
@@ -91,8 +91,8 @@ export function SellerAnalyticsPanel({
   const paymentPie = useMemo(
     () =>
       [
-        { name: "已對帳", value: data.summary.matched },
-        { name: "未對帳", value: data.summary.pending },
+        { name: "商家已確認收款", value: data.summary.matched },
+        { name: "待付款", value: data.summary.pending },
       ].filter((d) => d.value > 0),
     [data.summary]
   );
@@ -167,9 +167,9 @@ export function SellerAnalyticsPanel({
           icon={PackageCheck}
         />
         <SummaryCard
-          label="已對帳"
+          label="商家已確認收款"
           value={String(data.summary.matched)}
-          hint={`未對帳 ${data.summary.pending}`}
+          hint={`待付款 ${data.summary.pending}`}
           icon={Wallet}
         />
       </div>

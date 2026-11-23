@@ -5,7 +5,11 @@ import { useRouter } from "next/navigation";
 import { Loader2, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { FREE_TRIAL, SIGNUP_EARLY_BIRD } from "@/types/database";
+import {
+  FREE_TRIAL,
+  SIGNUP_EARLY_BIRD,
+  formatSignupEarlyBirdDiscountPhrase,
+} from "@/types/database";
 
 export function StartTrialButton({
   earlyBirdOpen,
@@ -59,8 +63,8 @@ export function StartTrialButton({
           </p>
           <p className="text-sm text-amber-900/80">
             {earlyBirdOpen
-              ? `${SIGNUP_EARLY_BIRD.label}尚餘 ${earlyBirdRemaining}/${SIGNUP_EARLY_BIRD.maxUsers} 名：開始試用即鎖定終身月繳 9 折、半年 85 折、整年 8 折。`
-              : "早鳥名額已滿；仍可開始 7 天全功能試用，續約依標準方案。"}
+              ? `${SIGNUP_EARLY_BIRD.label}尚餘 ${earlyBirdRemaining}/${SIGNUP_EARLY_BIRD.maxUsers} 名：開始試用即鎖定終身${formatSignupEarlyBirdDiscountPhrase()}。`
+              : `早鳥名額已滿；仍可開始 ${FREE_TRIAL.durationDays} 天全功能試用，續約依標準方案。`}
           </p>
         </div>
       </div>

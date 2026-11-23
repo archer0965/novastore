@@ -17,9 +17,11 @@ import {
   bumpSellerMonthlyUsage,
   gateSellerMonthlyUsage,
 } from "@/lib/seller-usage";
+import { createStoreOrderAtomic } from "@/lib/create-store-order";
 import { quoteShipping } from "@/lib/shipping";
 import { getSiteUrl } from "@/lib/site";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { reportToHub } from "@/lib/novaos-telemetry";
 
 const lineItemSchema = z.object({
   color: z.string().trim().max(30).optional().default(""),
@@ -57,6 +59,8 @@ const schema = z
     coupon_code: z.string().trim().max(32).optional().nullable(),
     /** Checkout payment path; myship_cod is handled client-side via redirect */
     payment_type: z.enum(["atm", "myship_cod"]).optional().default("atm"),
+    /** Client idempotency token (UUID) — prevents duplicate orders on double-submit */
+    client_request_id: z.string().uuid().optional().nullable(),
   })
   .superRefine((data, ctx) => {
     if (!data.items?.length && data.quantity == null) {
@@ -171,27 +175,6 @@ export async function POST(request: Request) {
       );
     }
 
-    if (product.stock != null) {
-      const { data: orderRows } = await admin
-        .from("orders")
-        .select("quantity")
-        .eq("product_id", product.id);
-      const ordered = (orderRows || []).reduce(
-        (sum, row) => sum + Number(row.quantity || 0),
-        0
-      );
-      const remaining = Math.max(0, Number(product.stock) - ordered);
-      if (remaining <= 0) {
-        return NextResponse.json({ error: "已售完" }, { status: 400 });
-      }
-      if (quantity > remaining) {
-        return NextResponse.json(
-          { error: `庫存不足，目前剩餘 ${remaining} 件` },
-          { status: 400 }
-        );
-      }
-    }
-
     const usageGate = await gateSellerMonthlyUsage(product.user_id);
     if (!usageGate.ok) {
       if (usageGate.code === "QUOTA_EXCEEDED" && usageGate.lineUserId) {
@@ -272,58 +255,38 @@ export async function POST(request: Request) {
     const primarySize = items.find((i) => i.size)?.size || "";
     const buyerName = parsed.data.buyer_name.trim().replace(/\s+/g, " ");
 
-    const { data: order, error } = await admin
-      .from("orders")
-      .insert({
-        product_id: product.id,
-        buyer_name: buyerName,
-        quantity,
-        total_amount: total,
-        subtotal_amount: subtotal,
-        discount_amount: discountAmount,
-        shipping_fee: orderShippingFee,
-        coupon_id: couponId,
-        coupon_code: couponCode,
-        atm_last5: parsed.data.atm_last5,
-        store_type: parsed.data.store_type,
-        store_info: parsed.data.store_info,
-        receiver_phone: parsed.data.receiver_phone,
-        selected_color: primaryColor,
-        selected_size: primarySize,
-        items,
-        items_summary: itemsSummary,
-        payment_status: "pending",
-        payment_type: "atm",
-        fulfillment_status: "unfulfilled",
-      })
-      .select("*")
-      .single();
+    const created = await createStoreOrderAtomic(admin, {
+      product_id: product.id,
+      buyer_name: buyerName,
+      quantity,
+      total_amount: total,
+      subtotal_amount: subtotal,
+      discount_amount: discountAmount,
+      shipping_fee: orderShippingFee,
+      coupon_id: couponId,
+      coupon_code: couponCode,
+      atm_last5: parsed.data.atm_last5,
+      store_type: parsed.data.store_type,
+      store_info: parsed.data.store_info,
+      receiver_phone: parsed.data.receiver_phone,
+      selected_color: primaryColor,
+      selected_size: primarySize,
+      items,
+      items_summary: itemsSummary,
+      client_request_id: parsed.data.client_request_id || null,
+      stock: product.stock == null ? null : Number(product.stock),
+    });
 
-    if (error) {
-      console.error("[store/orders]", error);
-      return NextResponse.json({ error: "下單失敗" }, { status: 500 });
-    }
-
-    // Post-insert stock recheck — closes TOCTOU oversell window
-    if (product.stock != null && order?.id) {
-      const { data: orderRows } = await admin
-        .from("orders")
-        .select("quantity")
-        .eq("product_id", product.id);
-      const ordered = (orderRows || []).reduce(
-        (sum, row) => sum + Number(row.quantity || 0),
-        0
+    if (!created.ok) {
+      return NextResponse.json(
+        { error: created.error, code: created.code },
+        { status: created.status }
       );
-      if (ordered > Number(product.stock)) {
-        await admin.from("orders").delete().eq("id", order.id);
-        return NextResponse.json(
-          { error: "庫存不足，請減少數量後再試" },
-          { status: 409 }
-        );
-      }
     }
 
-    if (couponId && order?.id) {
+    const order = created.order;
+
+    if (couponId && order?.id && !created.deduped) {
       const consumed = await consumeCouponUsage({
         couponId,
         sellerId: product.user_id,
@@ -339,11 +302,13 @@ export async function POST(request: Request) {
       }
     }
 
-    await bumpSellerMonthlyUsage(
-      product.user_id,
-      usageGate.usageCount,
-      usageGate.month
-    );
+    if (!created.deduped) {
+      await bumpSellerMonthlyUsage(
+        product.user_id,
+        usageGate.usageCount,
+        usageGate.month
+      );
+    }
 
     const seller = usageGate.seller;
     const lineOpts = {
@@ -352,7 +317,7 @@ export async function POST(request: Request) {
 
     // 團購：同步累積數量；首次達標時原子鎖定並推播 LINE（只通知一次）
     let groupBuyReachedNotified = false;
-    if (product.mode === "group_buy") {
+    if (product.mode === "group_buy" && !created.deduped) {
       try {
         const { data: qtyRows } = await admin
           .from("orders")
@@ -452,14 +417,25 @@ export async function POST(request: Request) {
     return NextResponse.json({
       ok: true,
       order,
+      deduped: created.deduped,
       lineNotified: false,
       groupBuyReachedNotified,
-      message: groupBuyReachedNotified
-        ? "訂單已送出，並已推播團購達標通知"
-        : "訂單已送出。賣家將於每日帳務彙整收到通知（不再逐筆推播）",
+      message: created.deduped
+        ? "訂單已存在（重複送出已略過）"
+        : groupBuyReachedNotified
+          ? "訂單已送出，並已推播團購達標通知"
+          : "訂單已送出。賣家將於每日帳務彙整收到通知（不再逐筆推播）",
     });
   } catch (error) {
     console.error("[store/orders]", error);
+    void reportToHub({
+      kind: "api_error",
+      severity: "error",
+      message: "store/orders POST failed",
+      meta: {
+        error: error instanceof Error ? error.message : String(error),
+      },
+    });
     return NextResponse.json({ error: "伺服器錯誤" }, { status: 500 });
   }
 }

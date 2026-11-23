@@ -106,7 +106,8 @@ function toPublicOrder(
     total_amount: Number(order.total_amount) || 0,
     atm_last5: hidePii ? "" : order.atm_last5 || "",
     payment_status: payment,
-    payment_label: payment === "matched" ? "已對帳（已確認收款）" : "未對帳",
+    payment_label:
+      payment === "matched" ? "商家已確認收款" : "待付款",
     fulfillment_status: fulfillment,
     fulfillment_label: fulfillment === "fulfilled" ? "已出貨" : "未出貨",
     items,

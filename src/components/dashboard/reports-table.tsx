@@ -36,11 +36,11 @@ const statusMap: Record<
     className: "bg-amber-100 text-amber-900 hover:bg-amber-100",
   },
   confirmed: {
-    label: "已核對",
+    label: "商家已確認收款",
     className: "bg-emerald-100 text-emerald-900 hover:bg-emerald-100",
   },
   auto_confirmed: {
-    label: "✅ 已自動核對",
+    label: "末五碼比對相符",
     className: "bg-sky-100 text-sky-900 hover:bg-sky-100",
   },
   rejected: {
@@ -48,7 +48,7 @@ const statusMap: Record<
     className: "bg-rose-100 text-rose-900 hover:bg-rose-100",
   },
   needs_contact: {
-    label: "⚠️ 異常 / 需聯繫",
+    label: "異常／需聯繫",
     className: "bg-orange-100 text-orange-950 hover:bg-orange-100",
   },
 };
@@ -59,7 +59,7 @@ const FILTERS: { id: FilterKey; label: string }[] = [
   { id: "actionable", label: "待處理" },
   { id: "pending", label: "待核對" },
   { id: "needs_contact", label: "異常" },
-  { id: "confirmed", label: "已核對" },
+  { id: "confirmed", label: "商家已確認收款" },
   { id: "all", label: "全部" },
 ];
 

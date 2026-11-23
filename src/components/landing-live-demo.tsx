@@ -252,7 +252,7 @@ export function LandingLiveDemo() {
             {step === "pay" || step === "line" ? (
               <form onSubmit={submitPay}>
                 <p className="text-xs font-medium tracking-wide text-muted-foreground">
-                  匯款回報 · 自動對帳
+                  匯款回報 · 末五碼比對
                 </p>
                 <p className="mt-1 font-display text-lg font-semibold">示範小舖</p>
                 <div className="mt-4 rounded-xl border border-border bg-secondary/40 px-3 py-3 text-sm">
@@ -331,7 +331,7 @@ export function LandingLiveDemo() {
                         ? "先在左側選規格，體驗獨立賣場下單"
                         : step === "checkout"
                           ? "填好超商門市後送出訂單"
-                          : "輸入末五碼，右側會跳出 LINE 入帳通知"}
+                          : "輸入末五碼，右側會跳出 LINE 比對通知"}
                     </p>
                   </div>
                 ) : (
@@ -340,7 +340,7 @@ export function LandingLiveDemo() {
                     <div className="ml-1 max-w-[95%] animate-fade-up rounded-2xl rounded-bl-md bg-white px-3.5 py-3 text-[#1a1a1a] shadow-md">
                       <div className="mb-1.5 flex items-center gap-1.5 text-[11px] font-semibold text-[#06C755]">
                         <CheckCircle2 className="h-3.5 w-3.5" aria-hidden />
-                        【新訂單已對帳】
+                        【末五碼比對通知】
                       </div>
                       <p className="text-[13px] leading-relaxed">
                         {color}/{size} · NT${" "}

@@ -47,7 +47,7 @@ export async function POST(request: Request) {
     ) {
       return NextResponse.json(
         {
-          error: "目前無法使用一鍵自動對帳，請稍後再試或聯繫客服。",
+          error: "目前無法使用一鍵末五碼比對，請稍後再試或聯繫客服。",
           code: "UPGRADE_REQUIRED",
         },
         { status: 403 }
@@ -140,7 +140,7 @@ export async function POST(request: Request) {
       ok: true,
       message:
         matched.length > 0
-          ? `已自動核對 ${matched.length} 筆`
+          ? `末五碼比對相符 ${matched.length} 筆（請商家再確認收款；≠銀行入帳確認）`
           : "沒有可自動核對的回報",
       parsedCount: txns.length,
       matchedCount: matched.length,

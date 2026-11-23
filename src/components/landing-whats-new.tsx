@@ -14,8 +14,8 @@ const FEATURES = [
   },
   {
     emoji: "⚡",
-    title: "智慧自動對帳（全方案標配）",
-    desc: "買家填末五碼自動勾稽，LINE 秒速播報入帳，告別 Excel 與截圖地獄。",
+    title: "末五碼比對助手（全方案標配）",
+    desc: "買家回報匯款末五碼後系統協助比對並 LINE 通知商家核對；比對結果≠銀行已確認入帳。",
   },
 ] as const;
 
@@ -33,11 +33,11 @@ export function LandingWhatsNew() {
           NovaStore 三大核心
         </p>
         <h2 className="mt-2 max-w-3xl font-display text-2xl font-semibold tracking-tight md:text-3xl">
-          從建店、上架、收單到自動收款，一站搞定
+          從建店、上架、收單到匯款核對，一站搞定
         </h2>
         <p className="mt-3 max-w-3xl text-muted-foreground">
           NovaStore
-          不是單純對帳工具，而是專為台灣代購、團購主打造的一站式獨立賣場與自動對帳平台。
+          不是單純對帳工具，而是專為台灣代購、團購主打造的一站式獨立賣場與匯款核對助手。
         </p>
 
         <ul className="mt-10 grid gap-8 sm:grid-cols-3 sm:gap-6">

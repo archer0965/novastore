@@ -157,7 +157,7 @@ export function SetupChecklist({ profile }: { profile: Profile }) {
               新手快速上手
             </h2>
             <p className="mt-1 text-sm text-muted-foreground">
-              完成 3 步驟即可開始自動對帳，約需幾分鐘。
+              完成 3 步驟即可開始收單與末五碼核對，約需幾分鐘。
             </p>
           </div>
         </div>

@@ -108,11 +108,11 @@ export function SignupEarlyBirdTopBanner({
                   早鳥優惠
                 </span>
                 <span>
-                  新註冊免費試用{" "}
+                  後台開始試用即享{" "}
                   <span className="rounded bg-slate-950/90 px-1.5 text-amber-300">
                     {trialDays} 天
-                  </span>
-                  ，不是 7 天！
+                  </span>{" "}
+                  全功能
                 </span>
               </p>
               <p className="mt-0.5 text-[11px] font-medium text-slate-800/90 sm:text-xs">

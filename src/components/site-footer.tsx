@@ -28,7 +28,7 @@ export function SiteFooter() {
               </a>
             </li>
             <li>
-              LINE 官方帳號：{" "}
+              LINE 官方帳號 @469uykad：{" "}
               <a
                 className="text-primary underline-offset-2 hover:underline"
                 href={siteConfig.lineOfficialUrl}
@@ -52,6 +52,11 @@ export function SiteFooter() {
             <li>
               <Link href="/privacy" className="hover:text-primary">
                 隱私權政策（個資法）
+              </Link>
+            </li>
+            <li>
+              <Link href="/refund" className="hover:text-primary">
+                退款政策
               </Link>
             </li>
             <li>
