@@ -5,6 +5,6 @@ export const NOVAOS_HUB_URL =
 
 /** NovaStore 付費升級：導向主站 Pass 升級頁（綠界 ECPay；同一 Supabase 帳號） */
 export function getNovaOsUpgradeUrl(): string {
-  const next = encodeURIComponent("/dashboard/pass#upgrade");
+  const next = encodeURIComponent("/dashboard/pass?product=store#upgrade");
   return `${NOVAOS_HUB_URL}/login?next=${next}`;
 }
