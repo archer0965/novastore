@@ -33,9 +33,9 @@ export function PwaBootRedirect() {
       } = await supabase.auth.getSession();
       if (cancelled || !session) return;
 
-      // Always send signed-in users from the marketing shell into the app.
-      // Standalone launches are the main case; browser tabs benefit too.
-      if (isStandaloneApp() || window.location.pathname === "/") {
+      // Only auto-jump for installed standalone PWA launches so browser users
+      // can browse "/" without getting trapped in /dashboard.
+      if (isStandaloneApp() && window.location.pathname === "/") {
         router.replace("/dashboard");
       }
     })();

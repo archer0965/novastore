@@ -34,7 +34,6 @@ export async function updateSession(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const path = request.nextUrl.pathname;
-  const isHome = path === "/";
   const isDashboard = path.startsWith("/dashboard");
   const isAuthPage = path === "/login" || path === "/signup";
 
@@ -45,14 +44,10 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // Already signed in: skip marketing / auth screens and open the app shell.
-  // Fixes PWA home-screen launches that still open "/" and required tapping 登入.
-  // Honor sanitized ?next= on login/signup (e.g. /login?next=/dashboard/store).
-  if (user && (isHome || isAuthPage)) {
-    const dest =
-      isAuthPage
-        ? sanitizeNextPath(request.nextUrl.searchParams.get("next"))
-        : "/dashboard";
+  // Already signed in on /login or /signup: honor sanitized ?next=.
+  // Do NOT force-redirect "/" so admins and members can browse the public homepage.
+  if (user && isAuthPage) {
+    const dest = sanitizeNextPath(request.nextUrl.searchParams.get("next"));
     return NextResponse.redirect(new URL(dest, request.nextUrl.origin));
   }
 
